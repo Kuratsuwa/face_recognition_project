@@ -1,3 +1,5 @@
+dlib
+face-recognition-models
 face_recognition
 opencv-python
 moviepy
