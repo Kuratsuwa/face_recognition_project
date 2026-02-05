@@ -1,0 +1,17 @@
+face_recognition
+opencv-python
+moviepy
+customtkinter
+packaging
+pillow
+torch
+torchvision
+diffusers
+transformers
+accelerate
+scipy
+torchsde
+huggingface-hub
+safetensors
+psutil
+tqdm

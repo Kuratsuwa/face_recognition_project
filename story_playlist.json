@@ -1,0 +1,124 @@
+{
+    "person_name": "はる",
+    "clips": [
+        {
+            "video_path": "/Volumes/part1/Sorted/videos/2016-01-17/GH012764.MP4",
+            "t": 129.5,
+            "happy": 0.04,
+            "visual_score": 9.5,
+            "vibe": "穏やか",
+            "timestamp": "2016-01-17 13:24:16",
+            "overlay_text": "The Story of はる"
+        },
+        {
+            "video_path": "/Volumes/part1/Sorted/videos/2016-02-08/GH012357.MP4",
+            "t": 4.5,
+            "happy": 1.0,
+            "visual_score": 9.5,
+            "vibe": "穏やか",
+            "timestamp": "2016-02-08 23:51:54",
+            "overlay_text": ""
+        },
+        {
+            "video_path": "/Volumes/Buffalo/Movie:Picture/未整理/GoPro/GX013738.MP4",
+            "t": 14.89,
+            "happy": 0.0,
+            "visual_score": 9.5,
+            "vibe": "穏やか",
+            "timestamp": "2024-07-27 19:31:08",
+            "overlay_text": "穏やかな日常"
+        },
+        {
+            "video_path": "/Volumes/Buffalo/Movie:Picture/未整理/GoPro/GX013768.MP4",
+            "t": 12.01,
+            "happy": 0.78,
+            "visual_score": 9.5,
+            "vibe": "穏やか",
+            "timestamp": "2024-07-27 20:24:54",
+            "overlay_text": ""
+        },
+        {
+            "video_path": "/Volumes/Buffalo/Movie:Picture/未整理/GoPro/GX013772.MP4",
+            "t": 64.77,
+            "happy": 0.074,
+            "visual_score": 9.5,
+            "vibe": "エネルギッシュ",
+            "timestamp": "2024-07-27 20:28:40",
+            "overlay_text": ""
+        },
+        {
+            "video_path": "/Volumes/Buffalo/Movie:Picture/未整理/GoPro/GX013854.MP4",
+            "t": 20.65,
+            "happy": 0.006,
+            "visual_score": 9.6,
+            "vibe": "エネルギッシュ",
+            "timestamp": "2024-07-29 18:03:40",
+            "overlay_text": ""
+        },
+        {
+            "video_path": "/Volumes/Buffalo/Movie:Picture/未整理/GoPro/GX015316.MP4",
+            "t": 409.16,
+            "happy": 1.0,
+            "visual_score": 4.6,
+            "vibe": "穏やか",
+            "timestamp": "2024-11-04 18:07:30",
+            "overlay_text": "最高の笑顔"
+        },
+        {
+            "video_path": "/Volumes/Buffalo/Movie:Picture/未整理/GoPro/GH015324.MP4",
+            "t": 207.48,
+            "happy": 1.0,
+            "visual_score": 3.7,
+            "vibe": "穏やか",
+            "timestamp": "2024-11-24 19:04:34",
+            "overlay_text": ""
+        },
+        {
+            "video_path": "/Volumes/Buffalo/Movie:Picture/未整理/GoPro/GH015326.MP4",
+            "t": 41.48,
+            "happy": 1.0,
+            "visual_score": 9.0,
+            "vibe": "穏やか",
+            "timestamp": "2024-11-24 19:31:30",
+            "overlay_text": ""
+        },
+        {
+            "video_path": "/Volumes/part2/名称未設定フォルダ/GH015440.MP4",
+            "t": 12.48,
+            "happy": 1.0,
+            "visual_score": 3.2,
+            "vibe": "穏やか",
+            "timestamp": "2024-12-09 13:40:50",
+            "overlay_text": ""
+        },
+        {
+            "video_path": "/Volumes/part2/名称未設定フォルダ/GH015453.MP4",
+            "t": 150.48,
+            "happy": 1.0,
+            "visual_score": 3.1,
+            "vibe": "穏やか",
+            "timestamp": "2024-12-10 11:55:48",
+            "overlay_text": ""
+        },
+        {
+            "video_path": "/Volumes/part2/名称未設定フォルダ/GH015475.MP4",
+            "t": 75.48,
+            "happy": 1.0,
+            "visual_score": 4.2,
+            "vibe": "穏やか",
+            "timestamp": "2024-12-15 23:20:08",
+            "overlay_text": ""
+        },
+        {
+            "video_path": "/Volumes/part2/名称未設定フォルダ/GH017740.MP4",
+            "t": 56.5,
+            "happy": 0.051,
+            "visual_score": 9.6,
+            "vibe": "穏やか",
+            "timestamp": "2025-08-24 16:55:48",
+            "overlay_text": "いつまでも、この瞬間を"
+        }
+    ],
+    "dominant_vibe": "穏やか",
+    "suggested_bgm": "Lo-fi / Acoustic (Soft and warm)"
+}

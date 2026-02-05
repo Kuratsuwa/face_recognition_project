@@ -1,0 +1,51 @@
+# --- Pythonの基本 ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# --- 仮想環境 ---
+.venv/
+venv/
+env/
+
+# --- ファイル作成・スキャンデータ（ローカル情報） ---
+scan_results.json
+story_playlist.json
+target_faces.pkl
+config.json
+
+# --- 出力フォルダ（生成された動画・音楽） ---
+output/
+bgm/
+
+# --- 動画・画像データ（大容量ファイルを除外） ---
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.wav
+
+# --- アセット管理 ---
+# 基本的に画像は除外するが、assetsフォルダ内のアイコン等は含める
+assets/profiles/
+# 個別の画像ファイル除外を解除し、特定のフォルダだけ守る形式に
+# (もしこれまでの *.png 除外設定でうまくいっていたなら、以下のように明示的に不許可にします)
+*.jpg
+*.jpeg
+*.png
+# 例外：assets内のアイコン類は許可
+!assets/*.png
+!assets/fonts/*.ttf
+
+# --- PyInstaller ---
+build/
+dist/
+# specファイルはGitHub Actionsでのビルドに必要なので含める
+# *.spec  <- コメントアウトまたは削除
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+.AppleDouble
+.LSOverride
