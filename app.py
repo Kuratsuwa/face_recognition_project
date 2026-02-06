@@ -1118,5 +1118,17 @@ class ModernDigestApp(ctk.CTk):
         self.is_running = False
 
 if __name__ == "__main__":
-    app = ModernDigestApp()
-    app.mainloop()
+    try:
+        app = ModernDigestApp()
+        app.mainloop()
+    except Exception as e:
+        import traceback
+        try:
+            from utils import get_app_dir
+            crash_log = os.path.join(get_app_dir(), "crash_log.txt")
+            with open(crash_log, "a", encoding="utf-8") as f:
+                f.write(f"\n--- Crash at {time.ctime()} ---\n")
+                traceback.print_exc(file=f)
+        except:
+            pass
+        raise
