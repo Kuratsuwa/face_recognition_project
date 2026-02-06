@@ -6,7 +6,7 @@ import time
 import queue
 import sys
 import os
-from PIL import Image
+from PIL import Image, ImageTk
 import json
 import glob
 import glob
@@ -102,12 +102,11 @@ class ModernDigestApp(ctk.CTk):
         self.render_phase = "init"
 
         # 画像ロード (assetsから)
-        # 画像ロード (assetsから)
         self.load_icons()
 
         # Load Icon
-        icon_path_ico = os.path.join(app_dir, "assets", "icon.ico")
-        icon_path_png = os.path.join(app_dir, "assets", "icon.png")
+        icon_path_ico = resource_path(os.path.join("assets", "icon.ico"))
+        icon_path_png = resource_path(os.path.join("assets", "icon.png"))
         
         try:
             if sys.platform == "win32" and os.path.exists(icon_path_ico):
