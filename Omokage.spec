@@ -60,6 +60,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='assets/icon.ico' if is_win else None,
 )
 coll = COLLECT(
     exe,
@@ -75,6 +76,6 @@ if is_mac:
     app = BUNDLE(
         coll,
         name='Omokage.app',
-        icon=None,
+        icon='assets/icon.icns',
         bundle_identifier='com.omokage.app',
     )

@@ -102,7 +102,24 @@ class ModernDigestApp(ctk.CTk):
         self.render_phase = "init"
 
         # 画像ロード (assetsから)
+        # 画像ロード (assetsから)
         self.load_icons()
+
+        # Load Icon
+        icon_path_ico = os.path.join(app_dir, "assets", "icon.ico")
+        icon_path_png = os.path.join(app_dir, "assets", "icon.png")
+        
+        try:
+            if sys.platform == "win32" and os.path.exists(icon_path_ico):
+                self.iconbitmap(icon_path_ico)
+            elif os.path.exists(icon_path_png):
+                img = Image.open(icon_path_png)
+                photo = ImageTk.PhotoImage(img)
+                self.wm_iconphoto(True, photo)
+        except Exception as e:
+            print(f"Failed to load icon: {e}")
+            
+        self.load_config_to_ui()
 
         # UI構築
         self.create_layout()
@@ -973,7 +990,7 @@ class ModernDigestApp(ctk.CTk):
         threading.Thread(target=run).start()
 
     def reset_edit_ui(self):
-        self.btn_gen_digest.configure(state="normal", text="ダイジェスト (3秒カット)")
+        self.btn_gen_digest.configure(state="normal", text="ダイジェスト")
         self.btn_gen_story.configure(state="normal", text="1分ドキュメンタリー")
         self.is_running = False
 
