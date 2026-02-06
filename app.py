@@ -81,6 +81,7 @@ class ModernDigestApp(ctk.CTk):
         self.SCAN_RESULTS = os.path.join(app_dir, "scan_results.json")
         self.TARGET_PKL = os.path.join(app_dir, "target_faces.pkl")
         self.STORY_PLAYLIST = os.path.join(app_dir, "story_playlist.json")
+        self.OUTPUT_DIR = os.path.join(app_dir, "output")
         
         self.config = self.load_config()
         
@@ -891,6 +892,7 @@ class ModernDigestApp(ctk.CTk):
                     create_digest.create_digest(
                         self.SCAN_RESULTS, 
                         target_person_name=person,
+                        base_output_dir=self.OUTPUT_DIR,
                         blur_enabled=self.blur_enabled.get(),
                         filter_type=self.color_filter.get(),
                         period=self.selected_period.get(),
@@ -951,6 +953,7 @@ class ModernDigestApp(ctk.CTk):
                     self.log("\n--- ステップ 2/2: 動画をレンダリング中 ---")
                     render_story.render_documentary(
                         playlist_path=self.STORY_PLAYLIST,
+                        output_dir=self.OUTPUT_DIR,
                         blur_enabled=self.blur_enabled.get(),
                         filter_type=self.color_filter.get(),
                         bgm_enabled=self.bgm_enabled.get()
@@ -1077,7 +1080,10 @@ class ModernDigestApp(ctk.CTk):
             self.after(0, self.reset_ui)
 
     def open_result(self):
-        output_dir = 'output'
+        output_dir = self.OUTPUT_DIR
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir, exist_ok=True)
+            
         if os.path.exists(output_dir):
             if sys.platform == 'darwin':
                 subprocess.run(['open', output_dir])

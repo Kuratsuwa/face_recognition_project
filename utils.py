@@ -15,7 +15,12 @@ def get_app_dir():
     """ Get the directory of the executable or script """
     if getattr(sys, 'frozen', False):
         # Bundled executable
-        return os.path.dirname(sys.executable)
+        exe_dir = os.path.dirname(sys.executable)
+        # On macOS, the executable is inside Omokage.app/Contents/MacOS/
+        # We want to save configs/output next to Omokage.app
+        if sys.platform == 'darwin' and ".app/Contents/MacOS" in exe_dir:
+            return os.path.abspath(os.path.join(exe_dir, "../../.."))
+        return exe_dir
     else:
         # Normal script
         return os.path.dirname(os.path.abspath(__file__))
