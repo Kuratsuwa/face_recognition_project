@@ -5,17 +5,20 @@ import os
 import glob
 import cv2
 
-def register_person(image_path, name, pkl_path='target_faces.pkl'):
+def register_person(image_path, name, pkl_path='target_faces.pkl', profile_dir=None):
     """
     1枚の画像から人物を登録。顔をクロップしてアイコン保存し、エンコーディングを保存する。
     """
+    if profile_dir is None:
+        from utils import get_app_dir
+        profile_dir = os.path.join(get_app_dir(), "assets/profiles")
+
     if not os.path.exists(image_path):
         print(f"Error: Image not found: {image_path}")
         return False
 
     try:
         # ディレクトリ準備
-        profile_dir = "assets/profiles"
         os.makedirs(profile_dir, exist_ok=True)
         
         # ロード
@@ -84,7 +87,8 @@ def delete_person(name, pkl_path='target_faces.pkl'):
                 print(f"  => データの削除完了: {name}")
 
         # アイコンを削除
-        icon_path = os.path.join("assets/profiles", f"{name}.jpg")
+        from utils import get_app_dir
+        icon_path = os.path.join(get_app_dir(), "assets/profiles", f"{name}.jpg")
         if os.path.exists(icon_path):
             os.remove(icon_path)
             print(f"  => アイコンの削除完了: {icon_path}")

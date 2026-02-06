@@ -67,6 +67,13 @@ def generate_bgm(vibe="穏やか", duration_seconds=30, output_dir="bgm", token=
     filename = f"{base_name}_{timestamp}.wav"
     
     os.makedirs(output_dir, exist_ok=True)
+    
+    # Ensure absolute path if it looks relative
+    if not os.path.isabs(output_dir):
+        from utils import get_app_dir
+        output_dir = os.path.join(get_app_dir(), output_dir)
+        os.makedirs(output_dir, exist_ok=True)
+        
     output_path = os.path.join(output_dir, filename)
 
     print(f"\n>>> AI BGM生成を開始します...")

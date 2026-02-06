@@ -181,12 +181,11 @@ def scan_video(video_path, target_data, check_interval_sec=1.0, resize_scale=0.2
     cap.release()
     return results_per_person
 
-def run_scan(video_folder, target_pkl='target_faces.pkl'):
-    # video_folder = sys.argv[1] # Removed
-    # target_pkl = sys.argv[2] if len(sys.argv) > 2 else 'target_faces.pkl' # Removed
-    
-    output_json = 'scan_results.json'
-
+def run_scan(video_folder, target_pkl='target_faces.pkl', output_json=None):
+    if output_json is None:
+        from utils import get_app_dir
+        output_json = os.path.join(get_app_dir(), 'scan_results.json')
+        
     # 特徴量ロード
     target_data = load_target_encodings(target_pkl)
 
