@@ -247,7 +247,9 @@ def run_scan(video_folder, target_pkl='target_faces.pkl', output_json=None):
 
         # 進捗率
         progress = (i) / len(video_files)
-        print(f"PROGRESS: {progress:.2f}")
+        pct = int(progress * 100)
+        print(f"進捗: {pct}% ({i+1}/{len(video_files)}本目)")
+        print(f"PROGRESS: {pct}%")
         sys.stdout.flush()
 
         results_per_person = scan_video(video_path, target_data)
@@ -274,8 +276,9 @@ def run_scan(video_folder, target_pkl='target_faces.pkl', output_json=None):
         with open(output_json, 'w', encoding='utf-8') as f:
             json.dump(results, f, indent=4, ensure_ascii=False)
             
-    # 最後は 1.0 (100%) を出力
-    print(f"PROGRESS: 1.00")
+    # 最後は 100% を出力
+    print(f"進捗: 100% ({len(video_files)}/{len(video_files)}本目)")
+    print(f"PROGRESS: 100%")
     sys.stdout.flush()
 
     # 結果保存

@@ -1079,7 +1079,12 @@ class ModernDigestApp(ctk.CTk):
                 line_str = line.strip()
                 if line_str.startswith("PROGRESS:"):
                     try:
-                        p_val = float(line_str.split(":")[1].strip())
+                        val_str = line_str.split(":")[1].strip()
+                        if val_str.endswith("%"):
+                            p_val = float(val_str.replace("%", "")) / 100.0
+                        else:
+                            p_val = float(val_str)
+                            
                         overall_p = p_start + (p_val * (p_end - p_start))
                         self.after(0, lambda p=overall_p: self.progressbar.set(p))
                     except: pass
