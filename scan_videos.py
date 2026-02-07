@@ -186,7 +186,7 @@ def scan_video(video_path, target_data, check_interval_sec=1.0, resize_scale=0.2
     cap.release()
     return results_per_person
 
-def run_scan(video_folder, target_pkl='target_faces.pkl', output_json=None):
+def run_scan(video_folder, target_pkl='target_faces.pkl', output_json=None, force=False):
     if output_json is None:
         from utils import get_app_dir
         output_json = os.path.join(get_app_dir(), 'scan_results.json')
@@ -223,7 +223,6 @@ def run_scan(video_folder, target_pkl='target_faces.pkl', output_json=None):
             for name in target_data.keys():
                 if name not in results["people"]:
                     results["people"][name] = {}
-            # 登録されていない人物のデータを削除（オプション: ユーザー要望次第だが、現状維持が安全か）
         except:
             results = {
                 "people": {name: {} for name in target_data.keys()},
@@ -236,17 +235,8 @@ def run_scan(video_folder, target_pkl='target_faces.pkl', output_json=None):
         }
 
     for i, video_path in enumerate(video_files):
-        # スキップ判定: 既にメタデータが存在する場合はスキャン済みとみなす
-        if video_path in results["metadata"]:
-            already_scanned_all_people = True
-            # もし登録されて間もない新人物がいる場合、その人物のデータがこのパスにない可能性がある
-            for name in target_data.keys():
-                if video_path not in results["people"][name]:
-                    # ここで「いや、この人物分だけスキャンしなきゃ」とするか、
-                    # ユーザーの言う通り「ファイルのスキャンはスキップ」を優先するか。
-                    # シンプルに「スキャン済みなら何もしない」とする。
-                    pass
-            
+        # スキップ判定: forceがFalseかつ、既にメタデータが存在する場合はスキャン済みとみなす
+        if not force and video_path in results["metadata"]:
             print(f"  スキップ (スキャン済み): {os.path.basename(video_path)}")
             continue
 
@@ -297,10 +287,11 @@ def run_scan(video_folder, target_pkl='target_faces.pkl', output_json=None):
             print(f"- {os.path.basename(path)}")
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("使用法: python scan_videos.py <video_folder_path> [target_pkl_path]")
-        sys.exit(1)
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("video_folder")
+    parser.add_argument("target_pkl", nargs="?", default='target_faces.pkl')
+    parser.add_argument("--force", action="store_true", help="既スキャン動画を再スキャン")
+    args = parser.parse_args()
     
-    video_folder = sys.argv[1]
-    target_pkl = sys.argv[2] if len(sys.argv) > 2 else 'target_faces.pkl'
-    run_scan(video_folder, target_pkl)
+    run_scan(args.video_folder, args.target_pkl, force=args.force)

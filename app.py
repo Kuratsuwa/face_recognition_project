@@ -95,6 +95,7 @@ class ModernDigestApp(ctk.CTk):
         self.blur_enabled = ctk.BooleanVar(value=self.config.get("blur_enabled", False))
         self.color_filter = ctk.StringVar(value=self.config.get("color_filter", "None"))
         self.selected_period = ctk.StringVar(value="All Time")
+        self.force_rescan = ctk.BooleanVar(value=False) # Added this line
         self.selected_focus = ctk.StringVar(value="バランス")
         self.bgm_enabled = ctk.BooleanVar(value=self.config.get("bgm_enabled", False))
         self.hf_token = ctk.StringVar(value=self.config.get("hf_token", ""))
@@ -360,11 +361,16 @@ class ModernDigestApp(ctk.CTk):
         self.right_ctrl_cnt.grid(row=0, column=1, sticky="nsew", padx=(5, 0))
         
         # Action Buttons
+        self.cb_force = ctk.CTkCheckBox(self.right_ctrl_cnt, text="すでにスキャン済みの動画も\n再度スキャンして上書きする", 
+                                        variable=self.force_rescan, font=ctk.CTkFont(size=11),
+                                        fg_color=self.COLOR_ACCENT, hover_color=self.COLOR_HOVER, text_color=self.COLOR_TEXT)
+        self.cb_force.pack(pady=(45, 10), padx=15, anchor="w")
+
         self.btn_scan_run = ctk.CTkButton(self.right_ctrl_cnt, text="新規スキャン開始", image=self.icon_search, 
                                           compound="left", command=self.start_sequential_scan, height=35,
                                           font=ctk.CTkFont(size=12, weight="bold"), 
                                           fg_color=self.COLOR_ACCENT, hover_color=self.COLOR_HOVER, text_color="black")
-        self.btn_scan_run.pack(pady=(45, 15), padx=10, fill="x")
+        self.btn_scan_run.pack(pady=(5, 15), padx=10, fill="x")
 
 
 
@@ -686,7 +692,7 @@ class ModernDigestApp(ctk.CTk):
                 sys.stderr = RedirectText(lambda s: self.log(s, end=""))
                 
                 try:
-                    scan_videos.run_scan(folder, target_pkl=self.TARGET_PKL)
+                    scan_videos.run_scan(folder, target_pkl=self.TARGET_PKL, force=self.force_rescan.get())
                 finally:
                     sys.stdout = current_stdout
                     sys.stderr = current_stderr
