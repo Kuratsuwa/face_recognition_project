@@ -625,7 +625,7 @@ class ModernDigestApp(ctk.CTk):
         for child in self.profile_scroll.winfo_children():
             child.destroy()
             
-        profile_dir = os.path.join(get_app_dir(), "assets/profiles")
+        profile_dir = os.path.join(get_app_dir(), "profiles")
         icons = glob.glob(os.path.join(profile_dir, "*.jpg"))
         for icon_path in sorted(icons):
             p_name = os.path.splitext(os.path.basename(icon_path))[0]
