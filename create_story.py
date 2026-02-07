@@ -50,45 +50,56 @@ def create_story(person_name, period="All Time", focus="Balance", bgm_enabled=Fa
     except:
         pass
 
-    # --- Story Construction (起承転結 + 時系列) ---
-    # すでに使った動画ファイルを記録するセット
+    # すでに使ったシーン、動画ファイル、日付を記録する
+    used_scenes = set() # (video_path, t) を記録
     used_videos = set()
     used_dates = set()
 
     import random
 
     def pick_unique(candidates, count, key_func, reverse=True):
-        """重複を避けつつ、上位候補からランダムに選択する。可能な限り日付を変える。"""
+        """重複を避けつつ、上位候補からランダムに選択する。"""
         # スコア順にソート
         sorted_cands = sorted(candidates, key=key_func, reverse=reverse)
         
-        # 候補プールを広げる（必要な数の3倍程度まで）
-        pool_size = min(len(sorted_cands), count * 3)
+        # 候補プールを広げる（必要な数の5倍程度まで）
+        pool_size = min(len(sorted_cands), count * 5)
         pool = sorted_cands[:pool_size]
+        
+        # 絶対に同じシーンは選ばない (STRICT)
+        pool = [c for c in pool if (c["video_path"], c["t"]) not in used_scenes]
         
         picked = []
         
-        # Phase 1: 未使用の日付から選ぶ
-        pool_unique_date = [c for c in pool if c["timestamp"].split(" ")[0] not in used_dates]
-        if pool_unique_date:
-            random.shuffle(pool_unique_date)
-            for c in pool_unique_date:
-                if c["video_path"] not in used_videos:
-                    picked.append(c)
-                    used_videos.add(c["video_path"])
-                    used_dates.add(c["timestamp"].split(" ")[0])
-                    if len(picked) >= count: break
+        # Phase 1: 未使用の日付 & 未使用のビデオ から選ぶ (バリエーション優先)
+        p1 = [c for c in pool if c["video_path"] not in used_videos and c["timestamp"].split(" ")[0] not in used_dates]
+        random.shuffle(p1)
+        for c in p1:
+            if len(picked) >= count: break
+            picked.append(c)
+            used_scenes.add((c["video_path"], c["t"]))
+            used_videos.add(c["video_path"])
+            used_dates.add(c["timestamp"].split(" ")[0])
         
-        # Phase 2: まだ足りなければ、日付重複を許容して残りのプールから選ぶ
+        # Phase 2: 未使用のビデオ から選ぶ (日付重複は許容)
         if len(picked) < count:
-            remaining = [c for c in pool if c["video_path"] not in used_videos]
-            random.shuffle(remaining)
-            for c in remaining:
-                picked.append(c)
-                used_videos.add(c["video_path"])
-                # dateは既に登録済みのはずだが一応
-                used_dates.add(c["timestamp"].split(" ")[0])
+            p2 = [c for c in pool if c["video_path"] not in used_videos and (c["video_path"], c["t"]) not in used_scenes]
+            random.shuffle(p2)
+            for c in p2:
                 if len(picked) >= count: break
+                picked.append(c)
+                used_scenes.add((c["video_path"], c["t"]))
+                used_videos.add(c["video_path"])
+                used_dates.add(c["timestamp"].split(" ")[0])
+
+        # Phase 3: ビデオ/日付重複を許容して選ぶ (ただしシーン重複は絶対にNG)
+        if len(picked) < count:
+            p3 = [c for c in pool if (c["video_path"], c["t"]) not in used_scenes]
+            random.shuffle(p3)
+            for c in p3:
+                if len(picked) >= count: break
+                picked.append(c)
+                used_scenes.add((c["video_path"], c["t"]))
                         
         return picked
 
