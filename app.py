@@ -700,7 +700,7 @@ class ModernDigestApp(ctk.CTk):
                 self.log(">>> SCAN COMPLETE!")
                 self.after(0, self.refresh_scanned_files)
                 self.after(0, self.update_period_menu)
-                self.log("__NOTIFY__", title="完了", message="動画スキャンが完了しました。\nすでに処理済みのファイルは自動的にスキップされました。")
+                self.log("__NOTIFY__", title="完了", message="動画スキャンが完了しました。")
             except Exception as e:
                 self.log(f"ERROR: {e}")
                 self.log("__NOTIFY__", title="エラー", message=str(e), type="error")
