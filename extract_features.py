@@ -11,7 +11,7 @@ def register_person(image_path, name, pkl_path='target_faces.pkl', profile_dir=N
     """
     if profile_dir is None:
         from utils import get_app_dir
-        profile_dir = os.path.join(get_app_dir(), "assets/profiles")
+        profile_dir = os.path.join(get_app_dir(), "profiles")
 
     if not os.path.exists(image_path):
         print(f"Error: Image not found: {image_path}")
@@ -68,7 +68,9 @@ def register_person(image_path, name, pkl_path='target_faces.pkl', profile_dir=N
         return True
         
     except Exception as e:
-        print(f"Error: {e}")
+        import traceback
+        traceback.print_exc()
+        print(f"Error in register_person: {e}")
         return False
 
 def delete_person(name, pkl_path='target_faces.pkl'):
@@ -88,7 +90,7 @@ def delete_person(name, pkl_path='target_faces.pkl'):
 
         # アイコンを削除
         from utils import get_app_dir
-        icon_path = os.path.join(get_app_dir(), "assets/profiles", f"{name}.jpg")
+        icon_path = os.path.join(get_app_dir(), "profiles", f"{name}.jpg")
         if os.path.exists(icon_path):
             os.remove(icon_path)
             print(f"  => アイコンの削除完了: {icon_path}")
