@@ -1019,8 +1019,17 @@ class ModernDigestApp(ctk.CTk):
                 sys.stderr = RedirectText(lambda s: self.log(s, end=""))
                 
                 try:
-                    # Pass token to generate_bgm
-                    success, _ = generate_bgm.generate_bgm(vibe=vibe, duration_seconds=60, token=self.hf_token.get().strip())
+                    # Ensure absolute output dir exists
+                    os.makedirs(self.OUTPUT_DIR, exist_ok=True)
+                    bgm_output_dir = os.path.join(self.OUTPUT_DIR, "bgm")
+                    
+                    # Pass token and absolute output_dir to generate_bgm
+                    success, _ = generate_bgm.generate_bgm(
+                        vibe=vibe, 
+                        duration_seconds=60, 
+                        output_dir=bgm_output_dir,
+                        token=self.hf_token.get().strip()
+                    )
                     if not success:
                         raise Exception(f"BGM生成に失敗しました ({vibe})。\nトークンと権限を確認してください。")
                 finally:
