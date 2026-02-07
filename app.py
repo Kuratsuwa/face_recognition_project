@@ -605,13 +605,23 @@ class ModernDigestApp(ctk.CTk):
         
         # Step 3: Register
         self.log(f"[SYSTEM] Registering {name}...")
-        if register_person(path, name, pkl_path=self.TARGET_PKL):
+        success, reason = register_person(path, name, pkl_path=self.TARGET_PKL)
+        
+        if success:
             self.log(f"[SUCCESS] Registered {name}")
             self.refresh_profiles()
             messagebox.showinfo("完了", f"{name} を登録しました。")
         else:
-            self.log(f"[ERROR] Failed to register {name}")
-            messagebox.showerror("エラー", f"{name} の登録に失敗しました。")
+            self.log(f"[ERROR] Failed to register {name}: {reason}")
+            
+            if reason == "NO_FACE":
+                msg = f"{name} の顔が検出されませんでした。\n\nお顔が「正面」かつ「大きく（アップで）」写っている写真を選んでください。"
+            elif reason == "MULTIPLE_FACES":
+                msg = "複数の顔が検出されました。\n\n登録したい方「一人だけ」が写っている写真を選んでください。"
+            else:
+                msg = f"{name} の登録に失敗しました。\n(理由: {reason})"
+                
+            messagebox.showerror("登録失敗", msg)
 
     def delete_click(self, name):
         if messagebox.askyesno("削除", f"プロファイル '{name}' を削除してもよろしいですか？"):

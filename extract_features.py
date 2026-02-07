@@ -28,12 +28,16 @@ def register_person(image_path, name, pkl_path='target_faces.pkl', profile_dir=N
         
         if not face_locations:
             print("  => 顔が検出されませんでした。")
-            return False
+            return False, "NO_FACE"
             
+        if len(face_locations) > 1:
+            print(f"  => 複数の顔が検出されました ({len(face_locations)}人)。")
+            return False, "MULTIPLE_FACES"
+
         # 特徴量抽出
         encodings = face_recognition.face_encodings(image, known_face_locations=face_locations)
         if not encodings:
-            return False
+            return False, "ENCODING_ERROR"
             
         # 既存データの読み込み
         data = {}
@@ -65,13 +69,13 @@ def register_person(image_path, name, pkl_path='target_faces.pkl', profile_dir=N
         cv2.imwrite(icon_path, face_chip_bgr)
         
         print(f"  => 登録完了: {name} (Icon: {icon_path})")
-        return True
+        return True, "SUCCESS"
         
     except Exception as e:
         import traceback
         traceback.print_exc()
         print(f"Error in register_person: {e}")
-        return False
+        return False, str(e)
 
 def delete_person(name, pkl_path='target_faces.pkl'):
     """
