@@ -20,11 +20,5 @@ Omokage 本体は MIT ライセンスの下で提供されます。
   - このアプリはBGM生成に Stable Audio Open を使用しています。
   - **商用利用について**: 年間の総収益が100万ドル（約1.5億円）未満の個人または団体であれば、本アプリを通じて生成されたBGMを伴う動画を広告収益のあるサイト等で利用することが許可されています。
 
-### Hugging Face Tokenの入手方法
-Stable Audio Open 1.0 は「Gated Model」であり、利用規約への同意と認証トークンが必要です。
-1. [Hugging Face](https://huggingface.co/) でアカウントを作成（無料）。
-2. [Hugging Face公式サイトのモデルページ](https://huggingface.co/stabilityai/stable-audio-open-1.0)にアクセスし、規約を確認して「Agree and access repository」をクリックしてアクセス許可を得ます。
-3. [Settings > Access Tokens](https://huggingface.co/settings/tokens) から、新しいトークン（`Type: Read` で十分です）を作成し、コピーして本アプリの入力欄に貼り付けてください。
-
 ---
 © 2024 Omokage Team / AI Memory Lane Project

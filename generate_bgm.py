@@ -45,31 +45,27 @@ def generate_bgm(vibe="穏やか", duration_seconds=30, output_dir="bgm", token=
     
     import random
     
-    # Vibeを英語プロンプトのリストにマッピング (バリエーション強化)
+    # Vibeを英語プロンプトのリストにマッピング (ユーザー指定のプロンプトに刷新)
     vibe_prompts_map = {
         "穏やか": [
-            "beautifully melodic acoustic guitar and piano, warm and peaceful, emotionally evolving, studio recording",
-            "ambient ethereal soundscape, soft pads and distant bells, serene and calm, meditative, high quality",
-            "gentle solo piano, emotional and nostalgic, soft touch, peaceful atmosphere, professional production",
-            "lo-fi acoustic chill, mellow vibes, relaxing beats with warm guitar, cozy and serene"
+            "Soft solo felt piano. Slow tempo, minimalist, gentle touch. Lullaby, warm, peaceful, relaxing, sleeping baby, intimate room sound. 60bpm. [Loopable]",
+            "Gentle solo accordion. Slow breathing pads, long sustain notes, soft melody. Warm, nostalgic, peaceful, relaxing atmosphere. 65bpm. [Loopable]",
+            "Slow duet of piano and accordion. Gentle waltz time (3/4), soft interaction. Relaxing, soothing, warm family moment. 70bpm. [Loopable]"
         ],
         "エネルギッシュ": [
-            "uplifting energetic pop, bright synths and driving drums, catchy melodic hooks, high-energy, professional production",
-            "fast-paced synthwave, neon vibes, rhythmic and driving electronic beats, energetic and bold",
-            "funky upbeat rhythm, groovy bassline and bright horns, danceable and happy, high quality",
-            "inspiring corporate pop, motivational and bright, rhythmic guitar and percussion, positive energy"
+            "Upbeat duet of accordion and piano. Marching rhythm, bright and sunny melody. Energetic, happy, optimistic, outdoor picnic vibe. 125bpm.",
+            "Lively accordion-led melody with rhythmic piano backing. Fast folk dance, jig style. Energetic bellows, joyful, sunny, countryside vibe. 130bpm.",
+            "Fast-paced solo piano with light accordion accents. Major key arpeggios, bright and sparkling. Energetic, running children, pure joy. 135bpm."
         ],
         "感動的": [
-            "cinematic orchestral masterpiece, soaring expressive violin, rich emotional piano, dramatic and powerful",
-            "epic cinematic piano and strings, building tension and emotional release, evocative and grand",
-            "heartfelt solo cello and piano, deep emotional resonance, slowly evolving beautiful melody, high quality",
-            "atmospheric cinematic soundscape, emotional swells, ethereal vocals and lush strings, evocative"
+            "Cinematic emotional duet. Expressive piano arpeggios and nostalgic accordion melody. Builds to a crescendo. Touching, heart-warming, grand finale. 80bpm. [Non-looping]",
+            "Nostalgic solo accordion waltz. French musette style, expressive bellows. Melancholic, beautiful, bittersweet memory. Ends with a slow fade. 75bpm. [Non-looping]",
+            "Emotional solo grand piano. Simple but powerful melody. Expressive dynamics, reverb. Sentimental, touching, pure love. Ends with a long sustain chord. 70bpm. [Non-looping]"
         ],
         "かわいい": [
-            "playful whimsical melody, plucky strings and mallets, bright and cheerful, bouncy and lighthearted",
-            "cute 8-bit chiptune, happy and adventurous, retro game music, catchy and playful electronics",
-            "kawaii future bass, bright and bubbly synths, sweet melody, energetic and cute rhythm",
-            "gentle toy piano and woodwinds, nursery rhyme style, innocent and sweet, playful atmosphere"
+            "Bright and happy ukulele and glockenspiel. Wholesome, pastel color vibe. Sunny Sunday morning, cute pets, relaxing and acoustic. 100bpm.",
+            "Playful solo acoustic guitar and light percussion. Innocent, heartwarming, kids playing in the park. Sweet, simple, and catchy melody. 110bpm.",
+            "Bouncy piano and recorder melody. Lighthearted, cute, and optimistic. Educational video background, pure joy, smiling faces. 120bpm."
         ]
     }
 
@@ -86,6 +82,7 @@ def generate_bgm(vibe="穏やか", duration_seconds=30, output_dir="bgm", token=
 
     # Vibeに応じたベースファイル名
     base_name = vibe
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"{base_name}_{detected_style}_{timestamp}.wav"
     
     # Ensure absolute path if it looks relative
@@ -97,11 +94,30 @@ def generate_bgm(vibe="穏やか", duration_seconds=30, output_dir="bgm", token=
         
     output_path = os.path.join(output_dir, filename)
 
-    print(f"\n>>> AI BGM生成を開始します...")
-    print(f"  雰囲気: {vibe}")
-    print(f"  プロンプト: {prompt}")
-    print(f"  長さ: {duration_seconds}秒 (Stable Audio制限: 最大47秒)")
-    print(f"  出力先: {output_path}")
+    os.makedirs(output_dir, exist_ok=True)
+    output_path = os.path.join(output_dir, filename)
+
+    # Stable Audio Open 1.0 は最大47秒まで対応
+    # 47秒を超える動画（例: 67秒）の場合、半分の長さ（33.5秒）を2回ループさせる方が
+    # 1つの長いセグメントを末尾で無理やり繋ぐより音楽的に自然になりやすい。
+    is_looped = False
+    if duration_seconds > 47.0:
+        audio_duration = duration_seconds / 2.0
+        is_looped = True
+    else:
+        audio_duration = min(duration_seconds, 47.0)
+
+    print(f"\n" + "="*50)
+    print(f"🎬 AI BGM GENERATION: {vibe}")
+    print(f"="*50)
+    print(f"  - Style:    {detected_style}")
+    if is_looped:
+        print(f"  - Length:   {duration_seconds}s -> {audio_duration:.1f}s (Loop-optimized)")
+    else:
+        print(f"  - Length:   {audio_duration:.1f}s (Model Limit: 47s)")
+    print(f"  - Output:   {os.path.basename(output_path)}")
+    print(f"  - Prompt:   {prompt}")
+    print(f"-"*50)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     # Mac M1/M2/M3 の場合は mps を優先
@@ -123,9 +139,6 @@ def generate_bgm(vibe="穏やか", duration_seconds=30, output_dir="bgm", token=
         pipe = pipe.to(device)
         
         # 生成
-        # Stable Audio Open 1.0 は最大47秒まで対応
-        audio_duration = min(duration_seconds, 47.0)
-        
         print(f"  音楽を生成中...")
         # 生成実行
         output = pipe(
@@ -133,6 +146,7 @@ def generate_bgm(vibe="穏やか", duration_seconds=30, output_dir="bgm", token=
             num_inference_steps=50, 
             audio_end_in_s=audio_duration
         ).audios
+        print() # Force newline after tqdm progress bar
         
         # output[0] は第一生成サンプル (channels, samples)
         # scipy.io.wavfile.write のために NumPy 配列に変換

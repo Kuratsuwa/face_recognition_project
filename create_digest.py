@@ -174,25 +174,27 @@ def create_digest(scan_results_path, target_person_name=None, config_path='confi
                     clip = video.subclip(start, end)
                     
                     # --- 究極の解像度正規化 (1280x720 キャンバス固定) ---
-                    # Calculate robust target size
-                    w, h = clip.size
-                    target_ratio = 1280 / 720
-                    clip_ratio = w / h
+                    # 1. 最初に回転を修正 (これが完了した時点で w と h が正しい向きに入れ替わる)
+                    if hasattr(clip, 'rotation') and clip.rotation != 0:
+                        clip = clip.rotate(clip.rotation)
 
-                    if clip_ratio > target_ratio:
-                        # Wider than 16:9 -> Fit to width 1280
-                        new_w = 1280
-                        new_h = int(1280 / clip_ratio)
+                    orig_w, orig_h = clip.size
+                    target_w, target_h = 1280, 720
+                    print(f"    [DEBUG] After Rotate: {orig_w}x{orig_h}, Ratio: {orig_w/orig_h:.3f}")
+
+                    # 2. 正しいアスペクト比を維持したまま 1280x720 に収める
+                    if (orig_w / orig_h) > (target_w / target_h):
+                        # 横長 -> 横幅を固定
+                        clip = clip.resize(width=target_w)
                     else:
-                        # Taller/Square -> Fit to height 720
-                        new_h = 720
-                        new_w = int(720 * clip_ratio)
-
-                    # Resize
-                    clip = clip.resize(newsize=(new_w, new_h))
+                        # 縦長 -> 縦幅を固定
+                        clip = clip.resize(height=target_h)
                     
-                    bg = ColorClip(size=(1280, 720), color=(0,0,0), duration=clip.duration)
-                    clip = CompositeVideoClip([bg, clip.set_position("center")])
+                    new_w, new_h = clip.size
+                    print(f"    [DEBUG] Resized: {new_w}x{new_h}, Final Ratio: {new_w/new_h:.3f}")
+
+                    # 3. 1280x720の黒背景の中央に配置 (レターボックス/ピラーボックス)
+                    clip = clip.on_color(size=(target_w, target_h), color=(0,0,0), pos="center")
                     clip = clip.set_fps(24)
                     
                     # --- 音声と時間の厳密な同期 ---
@@ -254,7 +256,7 @@ def create_digest(scan_results_path, target_person_name=None, config_path='confi
                 for clip in final_clips: clip.close()
             
             processed_groups += 1
-            print(f"PROGRESS: {processed_groups / total_groups:.2f}")
+            print(f"進捗: {int((processed_groups / total_groups) * 100)}%")
 
 def add_date_overlay(frame, date_str):
     from PIL import Image, ImageDraw, ImageFont

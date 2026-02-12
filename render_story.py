@@ -64,16 +64,37 @@ def apply_blur(frame, target_encodings, blur_enabled):
 def apply_color_filter(frame, filter_type):
     if filter_type == "None":
         return frame
+    
     img = frame.astype(np.float32)
     if filter_type == "Film":
         img = img * 1.1 - 10
         img[:,:,2] *= 1.1
-        img = np.clip(img, 0, 255)
     elif filter_type == "Sunset":
         img[:,:,0] *= 1.2
         img[:,:,1] *= 1.1
         img[:,:,2] *= 0.8
-        img = np.clip(img, 0, 255)
+    elif filter_type == "Cinema":
+        # 感動的: 高コントラスト、彩度抑えめ、シネマ階調
+        img = img * 1.25 - 20
+        avg = np.mean(img, axis=2, keepdims=True)
+        img = img * 0.7 + avg * 0.3
+    elif filter_type == "Nostalgic":
+        # 穏やか: セピア/暖色寄り、低コントラスト、柔らかい
+        img[:,:,0] *= 1.15
+        img[:,:,1] *= 1.05
+        img[:,:,2] *= 0.85
+        img = img * 0.9 + 15
+    elif filter_type == "Vivid":
+        # 元気: 彩度アップ、くっきり
+        img = (img - 128) * 1.3 + 128
+        img *= 1.1
+    elif filter_type == "Pastel":
+        # かわいい: 明るい、ピンク/マゼンタ寄り、ソフト
+        img = img * 0.6 + 90
+        img[:,:,0] *= 1.15 # Red
+        img[:,:,2] *= 1.10 # Blue
+    
+    img = np.clip(img, 0, 255)
     return img.astype(np.uint8)
 
 def add_title_overlay(frame, title_text):
@@ -198,7 +219,19 @@ def render_documentary(playlist_path='story_playlist.json', config_path='config.
         
     if filter_type is None:
         filter_type = os.environ.get("RENDER_FILTER", config.get("color_filter", "None"))
-        
+    
+    # BGMのVibeに合わせた自動フィルター設定
+    if filter_type == "None" or filter_type is None:
+        vibe_to_filter = {
+            "感動的": "Cinema",
+            "穏やか": "Nostalgic",
+            "エネルギッシュ": "Vivid",
+            "かわいい": "Pastel"
+        }
+        auto_filter = vibe_to_filter.get(dominant_vibe)
+        if auto_filter:
+            print(f"  Vibe ({dominant_vibe}) に基づきフィルター '{auto_filter}' を自動適用します")
+            filter_type = auto_filter
     if bgm_enabled is None:
         bgm_enabled = str(os.environ.get("RENDER_BGM", "0")).lower() in ("1", "true", "yes")
     target_pkl = resource_path('target_faces.pkl')
@@ -237,26 +270,25 @@ def render_documentary(playlist_path='story_playlist.json', config_path='config.
             clip = video.subclip(start, end)
             
             # --- Robust Normalization (1280x720 Fixed Canvas) ---
-            # Calculate robust target size
-            w, h = clip.size
-            target_ratio = 1280 / 720
-            clip_ratio = w / h
+            # 1. 最初に回転を修正 (これが完了した時点で w と h が正しい向きに入れ替わる)
+            if hasattr(clip, 'rotation') and clip.rotation != 0:
+                clip = clip.rotate(clip.rotation)
 
-            if clip_ratio > target_ratio:
-                # Wider than 16:9 -> Fit to width 1280
-                new_w = 1280
-                new_h = int(1280 / clip_ratio)
+            orig_w, orig_h = clip.size
+            target_w, target_h = 1280, 720
+            print(f"    [DEBUG] After Rotate: {orig_w}x{orig_h}, Ratio: {orig_w/orig_h:.3f}")
+
+            # 2. 正しいアスペクト比を維持したまま 1280x720 に収める
+            if (orig_w / orig_h) > (target_w / target_h):
+                clip = clip.resize(width=target_w)
             else:
-                # Taller/Square -> Fit to height 720
-                new_h = 720
-                new_w = int(720 * clip_ratio)
+                clip = clip.resize(height=target_h)
 
-            # Resize
-            clip = clip.resize(newsize=(new_w, new_h))
-            
-            # Place on 1280x720 black canvas (Pillarbox/Letterbox)
-            bg = ColorClip(size=(1280, 720), color=(0,0,0), duration=clip.duration)
-            clip = CompositeVideoClip([bg, clip.set_position("center")])
+            new_w, new_h = clip.size
+            print(f"    [DEBUG] Resized: {new_w}x{new_h}, Final Ratio: {new_w/new_h:.3f}")
+
+            # 3. 1280x720の黒背景の中央に配置 (レターボックス/ピラーボックス)
+            clip = clip.on_color(size=(target_w, target_h), color=(0,0,0), pos="center")
             
             # 3. Synchronize FPS
             clip = clip.set_fps(24)
@@ -349,22 +381,36 @@ def render_documentary(playlist_path='story_playlist.json', config_path='config.
         
         # BGMミキシング
         if bgm_enabled:
-            # vibeに応じたプレフィックス
-            vibe_prefix = {
+            # vibeに応じたプレフィックス (日本語と英語の両方をチェック)
+            vibe_prefix_en = {
                 "穏やか": "calm",
                 "エネルギッシュ": "energetic",
                 "感動的": "emotional",
                 "かわいい": "cute"
             }
             
-            target_prefix = vibe_prefix.get(dominant_vibe, "calm")
+            target_en = vibe_prefix_en.get(dominant_vibe, "calm")
+            target_jp = dominant_vibe
             
-            # 候補ファイルを検索
+            # 候補ファイルを検索 (output/bgm を優先し、なければルートの bgm を見る)
             candidates = []
-            if os.path.exists("bgm"):
-                for f in os.listdir("bgm"):
-                    if f.startswith(target_prefix) and f.endswith(".wav"):
-                        candidates.append(os.path.join("bgm", f))
+            bgm_search_dirs = [os.path.join(output_dir, "bgm"), "bgm"]
+            
+            # Unicode NFD/NFC問題への対策 (Mac)
+            import unicodedata
+            def normalize_path_str(s):
+                return unicodedata.normalize('NFC', s)
+
+            target_jp_norm = normalize_path_str(target_jp)
+            target_en_norm = normalize_path_str(target_en)
+
+            for d in bgm_search_dirs:
+                if os.path.exists(d):
+                    for f in os.listdir(d):
+                        f_norm = normalize_path_str(f)
+                        if (f_norm.startswith(target_jp_norm) or f_norm.startswith(target_en_norm)) and f_norm.endswith(".wav"):
+                            candidates.append(os.path.join(d, f))
+                if candidates: break # 優先ディレクトリで見つかれば終了
             
             if candidates:
                 bgm_file = random.choice(candidates)
@@ -372,14 +418,38 @@ def render_documentary(playlist_path='story_playlist.json', config_path='config.
                 try:
                     bgm_audio = AudioFileClip(bgm_file)
                     
-                    # BGMを動画の長さに合わせる（ループまたはカット）
+                    # BGMを動画の長さに合わせる
                     video_duration = final_video.duration
-                    if bgm_audio.duration < video_duration:
-                        # ループ
-                        bgm_audio = bgm_audio.audio_loop(duration=video_duration)
+                    is_special_vibe = dominant_vibe in ["感動的"]
+                    
+                    if is_special_vibe:
+                        # 感動的: ループさせず、20秒以降かつ動画の終わりに合わせて配置
+                        # 47秒のBGMが動画の最後に終わるように開始時間を計算
+                        # ただし、開始は最低でも20秒後とする
+                        bgm_start = max(20.0, video_duration - bgm_audio.duration)
+                        bgm_audio = bgm_audio.set_start(bgm_start)
+                        # 動画の長さを超える部分はカット
+                        if bgm_start + bgm_audio.duration > video_duration:
+                            bgm_audio = bgm_audio.subclip(0, video_duration - bgm_start)
+                        print(f"  特殊配置適用 (穏やか/感動): 開始={bgm_start:.1f}s")
                     else:
-                        # カット
-                        bgm_audio = bgm_audio.subclip(0, video_duration)
+                        # かわいい・元気: 必要に応じてループ
+                        if bgm_audio.duration < video_duration:
+                            # 既存のループ処理をベースにするが、47秒の素材を想定
+                            crossfade_dur = min(3.0, bgm_audio.duration / 3) 
+                            loop_audio = bgm_audio.audio_fadeout(crossfade_dur)
+                            current_len = bgm_audio.duration
+                            
+                            while current_len < video_duration + crossfade_dur:
+                                print(f"  BGMループを追加中... (現在: {current_len:.1f}s)")
+                                next_segment = bgm_audio.audio_fadein(crossfade_dur).audio_fadeout(crossfade_dur)
+                                start_time = current_len - crossfade_dur
+                                loop_audio = CompositeAudioClip([loop_audio, next_segment.set_start(start_time)])
+                                current_len = loop_audio.duration
+                            
+                            bgm_audio = loop_audio.subclip(0, video_duration)
+                        else:
+                            bgm_audio = bgm_audio.subclip(0, video_duration)
                     
                     # フェードアウト（最後の2秒）
                     bgm_audio = bgm_audio.audio_fadeout(2.0)

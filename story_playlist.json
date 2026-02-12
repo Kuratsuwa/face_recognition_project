@@ -2,123 +2,366 @@
     "person_name": "はる",
     "clips": [
         {
-            "video_path": "/Volumes/part1/Sorted/videos/2016-01-17/GH012764.MP4",
-            "t": 129.5,
-            "happy": 0.04,
-            "visual_score": 9.5,
-            "vibe": "穏やか",
-            "timestamp": "2016-01-17 13:24:16",
-            "overlay_text": "The Story of はる"
+            "video_path": "/Volumes/part1/Sorted/videos/2016-01-04/GH012733.MP4",
+            "t": 475.5,
+            "happy": 0.088,
+            "visual_score": 3.6,
+            "vibe": "エモーショナル",
+            "drama": 0.758,
+            "motion": 0.93,
+            "face_ratio": 2.34,
+            "timestamp": "2016-01-04 12:17:08",
+            "overlay_text": "The Story of はる",
+            "_score_breakdown": {
+                "base": 0.36,
+                "struct": 0.3,
+                "style": 0.18
+            },
+            "_total_score": 0.284
         },
         {
-            "video_path": "/Volumes/part1/Sorted/videos/2016-02-08/GH012357.MP4",
-            "t": 4.5,
-            "happy": 1.0,
-            "visual_score": 9.5,
-            "vibe": "穏やか",
-            "timestamp": "2016-02-08 23:51:54",
-            "overlay_text": ""
+            "video_path": "/Volumes/part1/Sorted/videos/2021-07-16/IMG_2450.MOV",
+            "t": 11.73,
+            "happy": 0.013,
+            "visual_score": 5.0,
+            "vibe": "エモーショナル",
+            "drama": 0.717,
+            "motion": 0.55,
+            "face_ratio": 1.55,
+            "timestamp": "2021-07-16 09:20:51",
+            "overlay_text": "",
+            "_score_breakdown": {
+                "base": 0.5,
+                "struct": 0.3,
+                "style": 0.03
+            },
+            "_total_score": 0.176
         },
         {
-            "video_path": "/Volumes/Buffalo/Movie:Picture/未整理/GoPro/GX013738.MP4",
-            "t": 14.89,
+            "video_path": "/Volumes/part1/Sorted/videos/2023-02-01/GH011723.MP4",
+            "t": 16.36,
+            "happy": 0.99,
+            "visual_score": 2.9,
+            "vibe": "ハッピー",
+            "drama": 0.008,
+            "motion": 0.94,
+            "face_ratio": 2.4,
+            "timestamp": "2023-02-01 13:16:28",
+            "overlay_text": "穏やかな日常",
+            "_score_breakdown": {
+                "base": 0.29,
+                "struct": 1.0,
+                "style": 1.98
+            },
+            "_total_score": 2.27
+        },
+        {
+            "video_path": "/Volumes/part1/Sorted/videos/2023-03-13/GH011773.MP4",
+            "t": 10.5,
+            "happy": 0.001,
+            "visual_score": 6.0,
+            "vibe": "エモーショナル",
+            "drama": 0.943,
+            "motion": 0.75,
+            "face_ratio": 3.37,
+            "timestamp": "2023-03-13 13:19:32",
+            "overlay_text": "",
+            "_score_breakdown": {
+                "base": 0.6,
+                "struct": 1.0,
+                "style": 0.0
+            },
+            "_total_score": 0.602
+        },
+        {
+            "video_path": "/Volumes/part1/Sorted/videos/2023-03-19/GH011822.MP4",
+            "t": 23.5,
             "happy": 0.0,
-            "visual_score": 9.5,
-            "vibe": "穏やか",
-            "timestamp": "2024-07-27 19:31:08",
-            "overlay_text": "穏やかな日常"
+            "visual_score": 5.4,
+            "vibe": "エモーショナル",
+            "drama": 0.954,
+            "motion": 1.14,
+            "face_ratio": 4.84,
+            "timestamp": "2023-03-19 11:04:34",
+            "overlay_text": "",
+            "_score_breakdown": {
+                "base": 0.54,
+                "struct": 1.0,
+                "style": 0.0
+            },
+            "_total_score": 0.54
         },
         {
-            "video_path": "/Volumes/Buffalo/Movie:Picture/未整理/GoPro/GX013768.MP4",
-            "t": 12.01,
-            "happy": 0.78,
-            "visual_score": 9.5,
-            "vibe": "穏やか",
-            "timestamp": "2024-07-27 20:24:54",
-            "overlay_text": ""
+            "video_path": "/Volumes/part1/Sorted/videos/2023-03-19/GH011828.MP4",
+            "t": 82.0,
+            "happy": 0.0,
+            "visual_score": 7.5,
+            "vibe": "エモーショナル",
+            "drama": 0.977,
+            "motion": 0.6,
+            "face_ratio": 4.84,
+            "timestamp": "2023-03-19 11:21:50",
+            "overlay_text": "",
+            "_score_breakdown": {
+                "base": 0.75,
+                "struct": 1.0,
+                "style": 0.0
+            },
+            "_total_score": 0.75
         },
         {
-            "video_path": "/Volumes/Buffalo/Movie:Picture/未整理/GoPro/GX013772.MP4",
-            "t": 64.77,
-            "happy": 0.074,
-            "visual_score": 9.5,
-            "vibe": "エネルギッシュ",
-            "timestamp": "2024-07-27 20:28:40",
-            "overlay_text": ""
+            "video_path": "/Volumes/My Passport for Mac/未整理/GH015341.MP4",
+            "t": 30.28,
+            "happy": 0.0,
+            "visual_score": 9.2,
+            "vibe": "シネマティック",
+            "drama": 0.032,
+            "motion": 1.38,
+            "face_ratio": 0.06,
+            "timestamp": "2024-11-24 19:55:06",
+            "overlay_text": "",
+            "_score_breakdown": {
+                "base": 0.92,
+                "struct": 1.0,
+                "style": 0.0
+            },
+            "_total_score": 0.9199999999999999
         },
         {
-            "video_path": "/Volumes/Buffalo/Movie:Picture/未整理/GoPro/GX013854.MP4",
-            "t": 20.65,
-            "happy": 0.006,
-            "visual_score": 9.6,
-            "vibe": "エネルギッシュ",
-            "timestamp": "2024-07-29 18:03:40",
-            "overlay_text": ""
+            "video_path": "/Volumes/My Passport for Mac/未整理/GH015358.MP4",
+            "t": 38.92,
+            "happy": 0.013,
+            "visual_score": 3.5,
+            "vibe": "エモーショナル",
+            "drama": 0.984,
+            "motion": 0.68,
+            "face_ratio": 0.39,
+            "timestamp": "2024-11-28 22:16:30",
+            "overlay_text": "",
+            "_score_breakdown": {
+                "base": 0.35,
+                "struct": 1.0,
+                "style": 0.03
+            },
+            "_total_score": 0.376
         },
         {
-            "video_path": "/Volumes/Buffalo/Movie:Picture/未整理/GoPro/GX015316.MP4",
-            "t": 409.16,
-            "happy": 1.0,
-            "visual_score": 4.6,
-            "vibe": "穏やか",
-            "timestamp": "2024-11-04 18:07:30",
-            "overlay_text": "最高の笑顔"
-        },
-        {
-            "video_path": "/Volumes/Buffalo/Movie:Picture/未整理/GoPro/GH015324.MP4",
-            "t": 207.48,
-            "happy": 1.0,
-            "visual_score": 3.7,
-            "vibe": "穏やか",
-            "timestamp": "2024-11-24 19:04:34",
-            "overlay_text": ""
-        },
-        {
-            "video_path": "/Volumes/Buffalo/Movie:Picture/未整理/GoPro/GH015326.MP4",
-            "t": 41.48,
-            "happy": 1.0,
-            "visual_score": 9.0,
-            "vibe": "穏やか",
-            "timestamp": "2024-11-24 19:31:30",
-            "overlay_text": ""
-        },
-        {
-            "video_path": "/Volumes/part2/名称未設定フォルダ/GH015440.MP4",
-            "t": 12.48,
-            "happy": 1.0,
+            "video_path": "/Volumes/My Passport for Mac/未整理/GH015365.MP4",
+            "t": 5.32,
+            "happy": 0.276,
             "visual_score": 3.2,
-            "vibe": "穏やか",
-            "timestamp": "2024-12-09 13:40:50",
-            "overlay_text": ""
+            "vibe": "エモーショナル",
+            "drama": 0.485,
+            "motion": 1.0,
+            "face_ratio": 14.83,
+            "timestamp": "2024-11-30 19:08:32",
+            "overlay_text": "",
+            "_score_breakdown": {
+                "base": 0.32,
+                "struct": 1.0,
+                "style": 0.55
+            },
+            "_total_score": 0.8720000000000001
         },
         {
-            "video_path": "/Volumes/part2/名称未設定フォルダ/GH015453.MP4",
-            "t": 150.48,
-            "happy": 1.0,
-            "visual_score": 3.1,
-            "vibe": "穏やか",
-            "timestamp": "2024-12-10 11:55:48",
-            "overlay_text": ""
+            "video_path": "/Volumes/My Passport for Mac/未整理/GH015883.MP4",
+            "t": 15.88,
+            "happy": 0.146,
+            "visual_score": 3.3,
+            "vibe": "エモーショナル",
+            "drama": 0.834,
+            "motion": 1.79,
+            "face_ratio": 0.8,
+            "timestamp": "2025-01-09 18:14:08",
+            "overlay_text": "",
+            "_score_breakdown": {
+                "base": 0.33,
+                "struct": 1.0,
+                "style": 0.29
+            },
+            "_total_score": 0.6219999999999999
         },
         {
-            "video_path": "/Volumes/part2/名称未設定フォルダ/GH015475.MP4",
-            "t": 75.48,
-            "happy": 1.0,
-            "visual_score": 4.2,
-            "vibe": "穏やか",
-            "timestamp": "2024-12-15 23:20:08",
-            "overlay_text": ""
+            "video_path": "/Volumes/My Passport for Mac/未整理/GH015938.MP4",
+            "t": 1.96,
+            "happy": 0.121,
+            "visual_score": 7.4,
+            "vibe": "ナチュラル",
+            "drama": 0.009,
+            "motion": 1.46,
+            "face_ratio": 0.06,
+            "timestamp": "2025-01-14 19:13:08",
+            "overlay_text": "",
+            "_score_breakdown": {
+                "base": 0.74,
+                "struct": 1.0,
+                "style": 0.24
+            },
+            "_total_score": 0.982
         },
         {
-            "video_path": "/Volumes/part2/名称未設定フォルダ/GH017740.MP4",
-            "t": 56.5,
-            "happy": 0.051,
-            "visual_score": 9.6,
-            "vibe": "穏やか",
-            "timestamp": "2025-08-24 16:55:48",
-            "overlay_text": "いつまでも、この瞬間を"
+            "video_path": "/Volumes/My Passport for Mac/未整理/GH016323.MP4",
+            "t": 236.2,
+            "happy": 0.985,
+            "visual_score": 3.0,
+            "vibe": "ハッピー",
+            "drama": 0.014,
+            "motion": 0.55,
+            "face_ratio": 2.4,
+            "timestamp": "2025-03-06 23:50:36",
+            "overlay_text": "",
+            "_score_breakdown": {
+                "base": 0.3,
+                "struct": 1.0,
+                "style": 1.97
+            },
+            "_total_score": 2.27
+        },
+        {
+            "video_path": "/Volumes/My Passport for Mac/未整理/GH016427.MP4",
+            "t": 84.04,
+            "happy": 0.0,
+            "visual_score": 7.3,
+            "vibe": "エモーショナル",
+            "drama": 0.963,
+            "motion": 2.52,
+            "face_ratio": 7.17,
+            "timestamp": "2025-03-22 19:39:42",
+            "overlay_text": "最高の笑顔",
+            "_score_breakdown": {
+                "base": 0.73,
+                "struct": 1.0,
+                "style": 0.0
+            },
+            "_total_score": 0.73
+        },
+        {
+            "video_path": "/Volumes/My Passport for Mac/未整理/GH016521.MP4",
+            "t": 80.2,
+            "happy": 0.97,
+            "visual_score": 3.3,
+            "vibe": "ハッピー",
+            "drama": 0.02,
+            "motion": 0.92,
+            "face_ratio": 1.16,
+            "timestamp": "2025-03-28 18:50:42",
+            "overlay_text": "",
+            "_score_breakdown": {
+                "base": 0.33,
+                "struct": 1.0,
+                "style": 1.94
+            },
+            "_total_score": 2.27
+        },
+        {
+            "video_path": "/Volumes/My Passport for Mac/未整理/GH016978.MP4",
+            "t": 38.44,
+            "happy": 0.082,
+            "visual_score": 3.8,
+            "vibe": "エモーショナル",
+            "drama": 0.913,
+            "motion": 0.58,
+            "face_ratio": 0.8,
+            "timestamp": "2025-07-24 19:11:40",
+            "overlay_text": "",
+            "_score_breakdown": {
+                "base": 0.38,
+                "struct": 1.0,
+                "style": 0.16
+            },
+            "_total_score": 0.544
+        },
+        {
+            "video_path": "/Volumes/My Passport for Mac/未整理/GH017150.MP4",
+            "t": 21.16,
+            "happy": 0.004,
+            "visual_score": 7.1,
+            "vibe": "ナチュラル",
+            "drama": 0.36,
+            "motion": 1.51,
+            "face_ratio": 0.09,
+            "timestamp": "2025-07-27 20:20:28",
+            "overlay_text": "",
+            "_score_breakdown": {
+                "base": 0.71,
+                "struct": 1.0,
+                "style": 0.01
+            },
+            "_total_score": 0.718
+        },
+        {
+            "video_path": "/Volumes/My Passport for Mac/未整理/GH017174.MP4",
+            "t": 57.16,
+            "happy": 0.002,
+            "visual_score": 5.9,
+            "vibe": "エモーショナル",
+            "drama": 0.523,
+            "motion": 0.56,
+            "face_ratio": 0.8,
+            "timestamp": "2025-08-01 15:07:04",
+            "overlay_text": "",
+            "_score_breakdown": {
+                "base": 0.59,
+                "struct": 1.0,
+                "style": 0.0
+            },
+            "_total_score": 0.5940000000000001
+        },
+        {
+            "video_path": "/Volumes/My Passport for Mac/未整理/GH017174.MP4",
+            "t": 35.56,
+            "happy": 0.942,
+            "visual_score": 5.0,
+            "vibe": "ハッピー",
+            "drama": 0.055,
+            "motion": 0.76,
+            "face_ratio": 0.55,
+            "timestamp": "2025-08-01 15:07:04",
+            "overlay_text": "",
+            "_score_breakdown": {
+                "base": 0.5,
+                "struct": 1.0,
+                "style": 1.88
+            },
+            "_total_score": 2.384
+        },
+        {
+            "video_path": "/Volumes/My Passport for Mac/未整理/GH017344.MP4",
+            "t": 1.96,
+            "happy": 0.001,
+            "visual_score": 6.7,
+            "vibe": "エモーショナル",
+            "drama": 0.887,
+            "motion": 1.69,
+            "face_ratio": 1.15,
+            "timestamp": "2025-08-08 22:00:54",
+            "overlay_text": "いつまでも、この瞬間を",
+            "_score_breakdown": {
+                "base": 0.67,
+                "struct": 0.5,
+                "style": 0.0
+            },
+            "_total_score": 0.337
+        },
+        {
+            "video_path": "/Volumes/My Passport for Mac/未整理/GH017546.MP4",
+            "t": 3.0,
+            "happy": 0.0,
+            "visual_score": 6.4,
+            "vibe": "ナチュラル",
+            "drama": 0.042,
+            "motion": 0.97,
+            "face_ratio": 4.84,
+            "timestamp": "2025-08-17 00:36:28",
+            "overlay_text": "",
+            "_score_breakdown": {
+                "base": 0.64,
+                "struct": 0.75,
+                "style": 0.0
+            },
+            "_total_score": 0.48
         }
     ],
-    "dominant_vibe": "穏やか",
-    "suggested_bgm": "Lo-fi / Acoustic (Soft and warm)"
+    "dominant_vibe": "かわいい",
+    "suggested_bgm": "Gentle Lofi / Nostalgic (Cute and relaxing)"
 }

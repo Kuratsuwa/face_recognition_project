@@ -39,14 +39,25 @@ def register_person(image_path, name, pkl_path='target_faces.pkl', profile_dir=N
         if not encodings:
             return False, "ENCODING_ERROR"
             
-        # 既存データの読み込み
+        # 既存データの読み込み (互換性のため、常にリスト形式で保存)
         data = {}
         if os.path.exists(pkl_path):
-            with open(pkl_path, 'rb') as f:
-                data = pickle.load(f)
+            try:
+                with open(pkl_path, 'rb') as f:
+                    data = pickle.load(f)
+            except:
+                data = {}
         
-        # データの追加/更新
-        data[name] = encodings[0]
+        # データの追加/更新 (常にリストに格納)
+        if name in data:
+            if isinstance(data[name], list):
+                data[name].append(encodings[0])
+            else:
+                # 旧データが単一エンコーディングの場合、リストに変換して追加
+                data[name] = [data[name], encodings[0]]
+        else:
+            data[name] = [encodings[0]]
+
         with open(pkl_path, 'wb') as f:
             pickle.dump(data, f)
             

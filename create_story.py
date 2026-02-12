@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import cv2
 from datetime import datetime
 
 def load_scan_results(json_path='scan_results.json'):
@@ -18,9 +19,27 @@ def create_story(person_name, period="All Time", focus="Balance", bgm_enabled=Fa
     video_map = results["people"][person_name]
     metadata = results.get("metadata", {})
     all_clips = []
+    valid_videos_cache = {} # 読み込み可否のキャッシュ
 
     # Flatten the results into a list of clips with metadata
     for video_path, detections in video_map.items():
+        # ファイルの実在と読み込み可否をチェック
+        if video_path not in valid_videos_cache:
+            if os.path.exists(video_path):
+                # OpenCVでヘッダーが読み込めるか試行 (I/Oエラー対策)
+                cap = cv2.VideoCapture(video_path)
+                if cap.isOpened():
+                    valid_videos_cache[video_path] = True
+                    cap.release()
+                else:
+                    print(f"  Warning: Video file exists but is unreadable (I/O error): {video_path}")
+                    valid_videos_cache[video_path] = False
+            else:
+                valid_videos_cache[video_path] = False
+
+        if not valid_videos_cache[video_path]:
+            continue
+
         # 期間フィルタリング
         month = metadata.get(video_path, {}).get('month', 'unknown')
         if period != "All Time":
@@ -36,6 +55,9 @@ def create_story(person_name, period="All Time", focus="Balance", bgm_enabled=Fa
                 "happy": det.get("happy", 0),
                 "visual_score": det.get("visual_score", 5.0),
                 "vibe": det.get("vibe", "穏やか"),
+                "drama": det.get("drama", 0),
+                "motion": det.get("motion", 0),
+                "face_ratio": det.get("face_ratio", 0),
                 "timestamp": det.get("timestamp", ""),
                 "overlay_text": "" # 後で追加
             })
@@ -63,6 +85,14 @@ def create_story(person_name, period="All Time", focus="Balance", bgm_enabled=Fa
         # スコアに揺らぎ（ノイズ）を加える
         def noisy_key(x):
             val = key_func(x)
+            # マトリックススコアリング対応 (total_score, breakdown) のタプルが返る場合
+            if isinstance(val, tuple) and len(val) == 2 and isinstance(val[1], dict):
+                total, breakdown = val
+                x["_score_breakdown"] = breakdown
+                x["_total_score"] = total
+                return total * random.uniform(0.8, 1.2)
+            
+            # 従来形式の場合
             # 数値の場合は ±20% の揺らぎを加える
             if isinstance(val, (int, float)):
                 return val * random.uniform(0.8, 1.2)
@@ -148,25 +178,54 @@ def create_story(person_name, period="All Time", focus="Balance", bgm_enabled=Fa
     }
     focus = focus_map.get(focus, focus) # 日本語なら英語に、そうでなければそのまま
 
-    # Focusに応じた選択ロジック関数の切り替え
+    # Focusに応じた選択ロジック (構造 × スタイルのマトリックススコアリング)
     def get_key_func(part):
-        if focus == "Smile":
-            # 笑顔スコア優先
-            return lambda x: x.get("happy", 0)
+        def score_clip(x):
+            # 1. 構造によるベーススコア (0.0 ~ 1.0)
+            # 全てのフェーズで画質（visual_score）を基礎とする
+            base = x.get("visual_score", 5.0) / 10.0
             
-        elif focus == "Active":
-            # 動き（モーション）優先、なければVisual
-            return lambda x: (x.get("motion", 0), x.get("visual_score", 0))
+            # 2. 構造上の役割に応じた重み付け (Structural Weights)
+            struct_weight = 1.0
+            if part == "起":
+                # 導入は穏やかなシーンを極めて優先
+                if x.get("vibe") != "穏やか": struct_weight *= 0.3
+            elif part == "承":
+                # 中盤はバリエーション。特に強い制約なし
+                pass
+            elif part == "転":
+                # 盛り上がり。静かすぎるシーンは少し評価を下げる
+                if x.get("vibe") == "穏やか" and x.get("happy", 0) < 0.5:
+                    struct_weight *= 0.7
+            elif part == "結":
+                # 締め。お顔がしっかり写っている（face_ratio）ことを重視
+                ratio = x.get("face_ratio", 1.0)
+                if ratio > 3.0: struct_weight *= 1.5 # アップなら加点
+                if x.get("vibe") != "穏やか": struct_weight *= 0.5 # 穏やかで締める
+
+            # 3. ユーザーの重視項目（Focus Style）による加点 (0.0 ~ 2.0)
+            style_bonus = 0.0
+            if focus == "Smile":
+                style_bonus = x.get("happy", 0) * 2.0
+            elif focus == "Active":
+                # 動きの大きさを正規化 (0~10想定を0~2に)
+                style_bonus = (x.get("motion", 0) / 5.0)
+            elif focus == "Emotional":
+                # ドラマチック度とアップの度合い
+                style_bonus = x.get("drama", 0) + (x.get("face_ratio", 0) / 10.0)
+            else: # Balance
+                # 全てをバランスよく (平均的に加点)
+                style_bonus = (x.get("happy", 0) + x.get("drama", 0) + (x.get("motion", 0)/10.0)) / 1.5
+
+            total_score = (base * struct_weight) + style_bonus
+            # 詳細な内訳を返す
+            return total_score, {
+                "base": round(base, 2),
+                "struct": round(struct_weight, 2),
+                "style": round(style_bonus, 2)
+            }
             
-        elif focus == "Emotional":
-            # ドラマ（豊かな感情）+ クローズアップ度 優先
-            return lambda x: (x.get("drama", 0), x.get("face_ratio", 0))
-            
-        else: # Balance (Default)
-            if part == "起": return lambda x: (x.get("vibe", "") == "穏やか", x.get("visual_score", 0))
-            elif part == "承": return lambda x: x.get("visual_score", 0)
-            elif part == "転": return lambda x: x.get("happy", 0)
-            elif part == "結": return lambda x: (x.get("vibe", "") == "穏やか", x.get("visual_score", 0))
+        return score_clip
 
     # [起] Intro: 2 clips
     ki = pick_unique(ki_segment, 2, get_key_func("起"))
@@ -254,6 +313,11 @@ def create_story(person_name, period="All Time", focus="Balance", bgm_enabled=Fa
         elif clip in ketsu: phase = "結"
         
         print(f"[{phase}] {os.path.basename(clip['video_path'])} @ {clip['t']}s (Time: {clip['timestamp']}, Happy: {clip['happy']})")
+        
+        # スコアの内訳があれば表示
+        if "_score_breakdown" in clip:
+            b = clip["_score_breakdown"]
+            print(f"    └─ Score: {clip.get('_total_score', 0):.2f} (Base: {b['base']}, Struct: {b['struct']}, Style: {b['style']})")
 
     # Save playlist to a file for render_story to read
     playlist_data = {
