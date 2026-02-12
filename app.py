@@ -1778,37 +1778,50 @@ class ModernDigestApp(ctk.CTk):
             lbl_img.pack(side="left", padx=10, pady=5)
             row_widgets[key] = lbl_img
             
+            # 右側ボタン（コンパクト化）
             btns_frame = ctk.CTkFrame(row, fg_color="transparent")
-            btns_frame.pack(side="right", padx=10)
+            btns_frame.pack(side="right", padx=5)
             top_btns = ctk.CTkFrame(btns_frame, fg_color="transparent")
-            top_btns.pack(side="top", pady=(0, 5))
+            top_btns.pack(side="top", pady=(0, 2))
 
-            btn_play_file = ctk.CTkButton(top_btns, text="", image=self.icon_play, width=24, height=24, 
+            btn_play_file = ctk.CTkButton(top_btns, text="", image=self.icon_play, width=20, height=20, 
                                           fg_color="transparent", hover_color=self.COLOR_DEEP_BG,
                                           command=lambda p=item['path']: self.open_video_file(p))
-            btn_play_file.pack(side="left", padx=2)
-            btn_reveal_file = ctk.CTkButton(top_btns, text="", image=self.icon_folder, width=24, height=24, 
+            btn_play_file.pack(side="left", padx=0)
+            btn_reveal_file = ctk.CTkButton(top_btns, text="", image=self.icon_folder, width=20, height=20, 
                                             fg_color="transparent", hover_color=self.COLOR_DEEP_BG,
                                             command=lambda p=item['path']: self.reveal_in_finder(p))
-            btn_reveal_file.pack(side="left", padx=2)
+            btn_reveal_file.pack(side="left", padx=0)
 
             btn_del = ctk.CTkButton(btns_frame, text="削除", fg_color="#5D6D7E", hover_color="#A93226",
-                                    width=54, height=24, font=ctk.CTkFont(size=11, weight="bold"),
+                                    width=40, height=20, font=ctk.CTkFont(size=10, weight="bold"),
                                     command=lambda v=item['path'], t=item['t'], r=row: self.delete_scan_clip(self.last_person_viewed, v, t, r))
             btn_del.pack(side="top")
 
             info_frame = ctk.CTkFrame(row, fg_color="transparent")
             info_frame.pack(side="left", padx=10, expand=True, fill="both")
-
+            
+            # Vibe準備
+            vibe_val = item.get('vibe', '')
+            
             conf = item.get('dist')
             conf_txt = f" (識別率: {int((1.0 - conf) * 100)}%)" if conf is not None else ""
             lbl_desc = ctk.CTkLabel(info_frame, text=f"{item['description']}{conf_txt}", 
                                    font=ctk.CTkFont(size=13, weight="bold"), text_color=self.COLOR_ACCENT, anchor="w")
             lbl_desc.pack(fill="x")
 
-            lbl_filename = ctk.CTkLabel(info_frame, text=f"📂 {item['filename']}", font=ctk.CTkFont(size=11), 
+            # ファイル名とVibeタグを一列に
+            file_row = ctk.CTkFrame(info_frame, fg_color="transparent")
+            file_row.pack(fill="x")
+            
+            lbl_filename = ctk.CTkLabel(file_row, text=f"📂 {item['filename']}", font=ctk.CTkFont(size=11), 
                                         text_color="gray60", anchor="w")
-            lbl_filename.pack(fill="x")
+            lbl_filename.pack(side="left")
+            
+            if vibe_val:
+                lbl_vibe = ctk.CTkLabel(file_row, text=f"#{vibe_val}", font=ctk.CTkFont(size=10, weight="bold"),
+                                        text_color="#FFBF00", fg_color="#444444", corner_radius=12, height=16)
+                lbl_vibe.pack(side="left", padx=5)
 
             meta_strip = ctk.CTkFrame(info_frame, fg_color="transparent")
             meta_strip.pack(fill="x")
@@ -1818,7 +1831,12 @@ class ModernDigestApp(ctk.CTk):
 
             happy_pct = int(item['happy'] * 100) if isinstance(item['happy'], (int, float)) else 0
             drama_pct = int(item['drama'] * 100) if isinstance(item['drama'], (int, float)) else 0
-            metrics_txt = f"画質: {item['visual_score']}  |  笑顔: {happy_pct}%  |  ドラマ: {drama_pct}%"
+            
+            # 動きと顔サイズ (取得できない詳細は0や-で埋める)
+            motion_val = item.get('motion', 0)
+            face_ratio_val = item.get('face_ratio', 0) * 100
+            
+            metrics_txt = f"画質: {item['visual_score']}  |  笑顔: {happy_pct}%  |  ドラマ: {drama_pct}%  |  動き: {motion_val}  |  顔サイズ: {face_ratio_val:.1f}%"
             lbl_metrics = ctk.CTkLabel(info_frame, text=metrics_txt, font=ctk.CTkFont(size=10), anchor="w", text_color="gray70")
             lbl_metrics.pack(fill="x")
 
