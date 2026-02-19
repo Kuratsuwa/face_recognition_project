@@ -7,13 +7,8 @@ decorator
 customtkinter
 packaging
 pillow
-torch
-torchvision
-diffusers
-transformers
-accelerate
-scipy
-torchsde
+huggingface-hub
+safetensors
 huggingface-hub
 safetensors
 psutil

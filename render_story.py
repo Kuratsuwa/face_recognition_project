@@ -11,6 +11,11 @@ import face_recognition
 from moviepy.editor import VideoFileClip, concatenate_videoclips, ColorClip, CompositeVideoClip, AudioFileClip, CompositeAudioClip, ImageClip
 from utils import resource_path, load_config
 
+def get_app_dir():
+    if getattr(sys, 'frozen', False):
+        return os.path.dirname(sys.executable)
+    return os.path.dirname(os.path.abspath(__file__))
+
 def apply_blur(frame, target_encodings, blur_enabled):
     if not blur_enabled:
         return frame
@@ -328,34 +333,62 @@ def render_documentary(playlist_path='story_playlist.json', config_path='config.
                 "かわいい": "cute"
             }
             
-            target_en = vibe_prefix_en.get(dominant_vibe, "calm")
-            target_jp = dominant_vibe
+            # Check for manual BGM
+            manual_bgm = playlist_data.get("manual_bgm_path", "")
+            print(f"DEBUG: Manual BGM Path from playlist: '{manual_bgm}'")
             
-            # 候補ファイルを検索 (output/bgm を優先し、なければルートの bgm を見る)
             candidates = []
-            bgm_search_dirs = [os.path.join(output_dir, "bgm"), "bgm"]
-            
-            # Unicode NFD/NFC問題への対策 (Mac)
-            import unicodedata
-            def normalize_path_str(s):
-                return unicodedata.normalize('NFC', s)
-
-            target_jp_norm = normalize_path_str(target_jp)
-            target_en_norm = normalize_path_str(target_en)
-
-            for d in bgm_search_dirs:
-                if os.path.exists(d):
-                    for f in os.listdir(d):
-                        f_norm = normalize_path_str(f)
-                        if (f_norm.startswith(target_jp_norm) or f_norm.startswith(target_en_norm)) and f_norm.endswith(".wav"):
-                            candidates.append(os.path.join(d, f))
-                if candidates: break # 優先ディレクトリで見つかれば終了
-            
+            if manual_bgm and os.path.exists(manual_bgm):
+                candidates = [manual_bgm]
+                print(f"\n>>> Using Manually Selected BGM (Found): {manual_bgm}")
+            else:
+                if manual_bgm:
+                    print(f"DEBUG: Manual BGM path was provided but file not found: {manual_bgm}")
+                print(">>> No manual BGM selected. Proceeding without BGM.")
+                
             if candidates:
-                bgm_file = random.choice(candidates)
-                print(f"\n>>> BGMをミックス中: {bgm_file} (vibe: {dominant_vibe})")
+                bgm_file = candidates[0] # Only one candidate
+                print(f"\n>>> BGMをミックス中: {bgm_file}")
                 try:
-                    bgm_audio = AudioFileClip(bgm_file)
+                    # Temporary workaround for non-ASCII filenames/metadata issues in MoviePy
+                    import shutil
+                    import tempfile
+                    import subprocess
+                    
+                    # Create a temp file for the clean audio
+                    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+                        temp_bgm_path = tmp.name
+                    
+                    # Use ffmpeg to transcode to wav (strips messy metadata and ensures decodeability)
+                    # ffmpeg -i input -y output
+                    # -vn: disable video, -acodec pcm_s16le: standard wav
+                    cmd = [
+                        "ffmpeg", 
+                        "-y", 
+                        "-i", bgm_file, 
+                        "-vn", 
+                        "-acodec", "pcm_s16le", 
+                        "-ar", "44100", 
+                        "-ac", "2",
+                        "-map_metadata", "-1", # Strip all metadata
+                        temp_bgm_path
+                    ]
+                    
+                    print(f"  BGM再変換中 (ffmpeg)...")
+                    # Run ffmpeg
+                    result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    
+                    if result.returncode != 0:
+                        print(f"  Warning: ffmpeg conversion failed. Using original file copy method.")
+                        print(f"  ffmpeg stderr: {result.stderr.decode('utf-8', errors='ignore')}")
+                        # Fallback: just copy
+                        shutil.copy2(bgm_file, temp_bgm_path)
+                    else:
+                        print("  ffmpegによるWAV変換・メタデータ削除完了")
+
+                    print(f"  AudioFileClipで読み込み開始: {temp_bgm_path}")
+                    bgm_audio = AudioFileClip(temp_bgm_path)
+                    print(f"  AudioFileClip読み込み成功. Duration: {bgm_audio.duration}")
                     
                     # BGMを動画の長さに合わせる
                     video_duration = final_video.duration

@@ -10,7 +10,8 @@ def load_scan_results(json_path='scan_results.json'):
     with open(json_path, 'r', encoding='utf-8') as f:
         return json.load(f)
 
-def create_story(person_name, period="All Time", focus="Balance", bgm_enabled=False, json_path='scan_results.json', output_playlist_path='story_playlist.json'):
+def create_story(person_name, period="All Time", focus="Balance", bgm_enabled=False, json_path='scan_results.json', output_playlist_path='story_playlist.json', manual_bgm_path=""):
+    print(f"DEBUG: create_story received manual_bgm_path = '{manual_bgm_path}'")
     results = load_scan_results(json_path)
     if not results or person_name not in results.get("people", {}):
         print(f"Error: No data found for {person_name}")
@@ -280,24 +281,9 @@ def create_story(person_name, period="All Time", focus="Balance", bgm_enabled=Fa
             clip["overlay_text"] = "いつまでも、この瞬間を"
 
     # --- BGM Recommendation ---
-    vibes = [c["vibe"] for c in playlist]
-    vibe_counts = {v: vibes.count(v) for v in set(vibes)}
-    # デフォルトはクリップからの判定
-    dominant_vibe = max(vibe_counts, key=vibe_counts.get) if vibe_counts else "穏やか"
-
-    # Focusによる強力なオーバーライド
-    if focus == "Smile": dominant_vibe = "かわいい"
-    elif focus == "Active": dominant_vibe = "エネルギッシュ"
-    elif focus == "Emotional": dominant_vibe = "感動的"
-    elif focus == "Balance": dominant_vibe = "穏やか"
-
-    bgm_map = {
-        "穏やか": "Lo-fi / Acoustic (Soft and warm)",
-        "エネルギッシュ": "Upbeat / Pop (High energy and bright)",
-        "感動的": "Cinematic / Piano (Dramatic and emotional)",
-        "かわいい": "Gentle Lofi / Nostalgic (Cute and relaxing)"
-    }
-    bgm_suggestion = bgm_map.get(dominant_vibe, "Lo-fi / Cinematic MIX")
+    # Automatic BGM selection is removed. Only manual selection is used.
+    dominant_vibe = "None (Auto-selection removed)"
+    bgm_suggestion = "Manual Selection Only"
 
     # --- Output ---
     print(f"\n========================================")
@@ -323,7 +309,8 @@ def create_story(person_name, period="All Time", focus="Balance", bgm_enabled=Fa
         "person_name": person_name,
         "clips": playlist,
         "dominant_vibe": dominant_vibe,
-        "suggested_bgm": bgm_suggestion
+        "suggested_bgm": bgm_suggestion,
+        "manual_bgm_path": manual_bgm_path
     }
     
     with open(output_playlist_path, 'w', encoding='utf-8') as f:

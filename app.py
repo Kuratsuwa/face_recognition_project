@@ -114,6 +114,7 @@ class ModernDigestApp(ctk.CTk):
         self.view_mode = "People" # Forced default
         self.clip_view_mode = "list" # "list" or "grid"
         self.selected_clips = set() # set of (video_path, timestamp)
+        self.selected_bgm = ctk.StringVar(value="") # Path to manually selected BGM
         self.grid_tile_widgets = {} # NEW: Keep track of tile frames for fast updates
         
         # Scan Data Cache
@@ -147,6 +148,9 @@ class ModernDigestApp(ctk.CTk):
         except Exception as e:
             print(f"Failed to load icon: {e}")
             
+        # Start log polling & music status polling
+        self.log_queue = queue.Queue()
+        
         # UI構築
         self.create_layout()
         self.refresh_profiles()
@@ -154,8 +158,7 @@ class ModernDigestApp(ctk.CTk):
         # Protocol
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
-        # Start log polling & music status polling
-        self.log_queue = queue.Queue()
+        # Start polling loops
         self.check_log_queue()
         self.check_music_status()
 
@@ -385,11 +388,7 @@ class ModernDigestApp(ctk.CTk):
                                           command=lambda: self.select_frame_by_name("edit"))
         self.btn_nav_edit.grid(row=2, column=0, sticky="ew")
 
-        self.btn_nav_settings = ctk.CTkButton(self.sidebar_frame, corner_radius=0, height=45, border_spacing=10, text="管理設定",
-                                              fg_color="transparent", text_color=self.COLOR_TEXT, hover_color=self.COLOR_SIDEBAR,
-                                              anchor="w", font=ctk.CTkFont(size=14, weight="bold"),
-                                              command=lambda: self.select_frame_by_name("settings"))
-        self.btn_nav_settings.grid(row=3, column=0, sticky="ew")
+
 
         self.btn_nav_about = ctk.CTkButton(self.sidebar_frame, corner_radius=0, height=45, border_spacing=10, text="情報",
                                            fg_color="transparent", text_color=self.COLOR_TEXT, hover_color=self.COLOR_SIDEBAR,
@@ -397,11 +396,7 @@ class ModernDigestApp(ctk.CTk):
                                            command=lambda: self.select_frame_by_name("about"))
         self.btn_nav_about.grid(row=4, column=0, sticky="ew")
 
-        self.btn_open_out = ctk.CTkButton(self.sidebar_frame, text="保存先を開く", image=self.icon_video_output, compound="left",
-                                          fg_color=self.COLOR_SIDEBAR, hover_color=self.COLOR_ACCENT, 
-                                          text_color=self.COLOR_TEXT, font=ctk.CTkFont(size=12, weight="bold"),
-                                          command=self.open_result)
-        self.btn_open_out.grid(row=5, column=0, padx=20, pady=20, sticky="ew")
+
 
         # 2. メインコンテナ (Page Switcher)
         self.container_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -489,52 +484,9 @@ class ModernDigestApp(ctk.CTk):
         self.edit_frame.grid_columnconfigure((0, 1, 2), weight=1, uniform="edit_cols")
         self.edit_frame.grid_rowconfigure(0, weight=1)
 
-        # 0. AI BGM事前生成
-        self.bgm_section = ctk.CTkFrame(self.edit_frame, fg_color=self.COLOR_SIDEBAR, corner_radius=15)
-        self.bgm_section.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
-        ctk.CTkLabel(self.bgm_section, text="0. AI BGM 事前生成", text_color=self.COLOR_ACCENT, font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(12, 5))
-        
-        # BGMジャンルボタン (2x2 Grid)
-        self.bgm_grid = ctk.CTkFrame(self.bgm_section, fg_color="transparent")
-        self.bgm_grid.pack(pady=5, padx=10, fill="x")
-        self.bgm_grid.grid_columnconfigure((0, 1), weight=1)
-        
-        self.btn_gen_calm = ctk.CTkButton(self.bgm_grid, text="穏やか", height=28, font=ctk.CTkFont(size=11, weight="bold"),
-                                          fg_color=self.COLOR_ACCENT, hover_color=self.COLOR_HOVER, text_color="black",
-                                          command=lambda: self.generate_single_bgm("穏やか"))
-        self.btn_gen_calm.grid(row=0, column=0, padx=3, pady=3, sticky="ew")
-        
-        self.btn_gen_energetic = ctk.CTkButton(self.bgm_grid, text="元気", height=28, font=ctk.CTkFont(size=11, weight="bold"),
-                                                fg_color=self.COLOR_ACCENT, hover_color=self.COLOR_HOVER, text_color="black",
-                                                command=lambda: self.generate_single_bgm("エネルギッシュ"))
-        self.btn_gen_energetic.grid(row=0, column=1, padx=3, pady=3, sticky="ew")
-        
-        self.btn_gen_emotional = ctk.CTkButton(self.bgm_grid, text="感動", height=28, font=ctk.CTkFont(size=11, weight="bold"),
-                                                fg_color=self.COLOR_ACCENT, hover_color=self.COLOR_HOVER, text_color="black",
-                                                command=lambda: self.generate_single_bgm("感動的"))
-        self.btn_gen_emotional.grid(row=1, column=0, padx=3, pady=3, sticky="ew")
-
-        self.btn_gen_cute = ctk.CTkButton(self.bgm_grid, text="かわいい", height=28, font=ctk.CTkFont(size=11, weight="bold"),
-                                          fg_color=self.COLOR_ACCENT, hover_color=self.COLOR_HOVER, text_color="black",
-                                          command=lambda: self.generate_single_bgm("かわいい"))
-        self.btn_gen_cute.grid(row=1, column=1, padx=3, pady=3, sticky="ew")
-
-        ctk.CTkLabel(self.bgm_section, text="生成済みBGM:", font=ctk.CTkFont(size=11)).pack(anchor="w", padx=20, pady=(5, 0))
-        self.bgm_list_frame = ctk.CTkScrollableFrame(self.bgm_section, height=140, fg_color=self.COLOR_DEEP_BG, 
-                                                    scrollbar_button_color=self.COLOR_ACCENT,
-                                                    scrollbar_button_hover_color=self.COLOR_HOVER)
-        self.bgm_list_frame.pack(pady=(5, 12), padx=20, fill="both", expand=True)
-
-        # 1 & 2. 設定 (中央列)
-        self.settings_col = ctk.CTkFrame(self.edit_frame, fg_color="transparent")
-        self.settings_col.grid(row=0, column=1, sticky="nsew")
-        self.settings_col.grid_columnconfigure(0, weight=1)
-        self.settings_col.grid_rowconfigure(0, weight=0) # Target
-        self.settings_col.grid_rowconfigure(1, weight=1) # Settings
-        
-        # 1. 対象を選択
-        self.target_section = ctk.CTkFrame(self.settings_col, fg_color=self.COLOR_SIDEBAR, corner_radius=15)
-        self.target_section.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
+        # 1. 対象を選択 (Left Column: column=0)
+        self.target_section = ctk.CTkFrame(self.edit_frame, fg_color=self.COLOR_SIDEBAR, corner_radius=15)
+        self.target_section.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
         ctk.CTkLabel(self.target_section, text="1. 対象を選択", text_color=self.COLOR_ACCENT, font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(12, 5))
         
         self.target_person = ctk.StringVar(value="選択してください...")
@@ -544,9 +496,19 @@ class ModernDigestApp(ctk.CTk):
                                           height=30, font=ctk.CTkFont(size=12))
         self.menu_target.pack(pady=(5, 12), padx=20, fill="x")
 
-        # 2. 編集設定
+
+        # 2. 編集設定 (Center Column: column=1)
+        self.settings_col = ctk.CTkFrame(self.edit_frame, fg_color="transparent")
+        self.settings_col.grid(row=0, column=1, sticky="nsew", padx=5) # Reduced padding slightly
+        self.settings_col.grid_columnconfigure(0, weight=1)
+        self.settings_col.grid_rowconfigure(0, weight=1) # Full height
+        
+        # settings_col used to hold target_section in row 0, but now target is in col 0.
+        # So we just place set_section directly in settings_col or even direct in edit_frame column 1 if we want.
+        # To minimize changes, let's keep settings_col but put set_section in it.
+
         self.set_section = ctk.CTkFrame(self.settings_col, fg_color=self.COLOR_SIDEBAR, corner_radius=15)
-        self.set_section.grid(row=1, column=0, sticky="nsew", padx=10, pady=(5, 10))
+        self.set_section.grid(row=0, column=0, sticky="nsew", padx=5, pady=10)
         ctk.CTkLabel(self.set_section, text="2. 編集設定", text_color=self.COLOR_ACCENT, font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(12, 5))
         
         self.sw_blur = ctk.CTkSwitch(self.set_section, text="顔ぼかし (対象以外)", variable=self.blur_enabled, 
@@ -573,7 +535,37 @@ class ModernDigestApp(ctk.CTk):
         self.sw_bgm.pack(pady=(5, 0))
         
         ctk.CTkLabel(self.set_section, text="※ドキュメンタリー機能のみ有効", 
-                     text_color="gray75", font=ctk.CTkFont(size=10)).pack(pady=(0, 12))
+                     text_color="gray75", font=ctk.CTkFont(size=10)).pack(pady=(0, 5))
+
+        # --- BGM Management (Inside Edit Settings) ---
+        self.bgm_section = ctk.CTkFrame(self.set_section, fg_color="transparent")
+        self.bgm_section.pack(fill="x", pady=(0, 10))
+
+        # BGM List Area
+        self.bgm_list_frame = ctk.CTkScrollableFrame(self.bgm_section, height=120, 
+                                                    fg_color=self.COLOR_DEEP_BG, 
+                                                    scrollbar_button_color=self.COLOR_ACCENT,
+                                                    scrollbar_button_hover_color=self.COLOR_HOVER,
+                                                    label_text="BGMリスト",
+                                                    label_font=ctk.CTkFont(size=11))
+        self.bgm_list_frame.pack(pady=5, padx=5, fill="both", expand=True)
+
+        # Buttons row
+        bgm_btn_row = ctk.CTkFrame(self.bgm_section, fg_color="transparent")
+        bgm_btn_row.pack(fill="x", pady=2)
+        
+        self.btn_open_bgm = ctk.CTkButton(bgm_btn_row, text="フォルダ", width=60, height=24, 
+                                          font=ctk.CTkFont(size=11),
+                                          fg_color=self.COLOR_SIDEBAR, border_width=1, border_color="gray",
+                                          command=self.open_bgm_folder)
+        self.btn_open_bgm.pack(side="left", padx=5)
+        
+        ctk.CTkButton(bgm_btn_row, text="更新", width=40, height=24,
+                      font=ctk.CTkFont(size=11),
+                      fg_color=self.COLOR_SIDEBAR, border_width=1, border_color="gray",
+                      command=self.refresh_bgm_list).pack(side="left")
+        
+        # ---------------------------------------------
 
         # 3. 生成アクション (右列)
         self.gen_section = ctk.CTkFrame(self.edit_frame, fg_color=self.COLOR_SIDEBAR, corner_radius=15)
@@ -589,6 +581,12 @@ class ModernDigestApp(ctk.CTk):
                                            compound="left", command=self.generate_documentary, height=35, font=ctk.CTkFont(size=12, weight="bold"),
                                            fg_color=self.COLOR_ACCENT, hover_color=self.COLOR_HOVER, text_color="black")
         self.btn_gen_story.pack(pady=5, padx=20, fill="x")
+        
+        # Open Save Location (Moved here)
+        self.btn_open_out = ctk.CTkButton(self.gen_section, text="保存先を開く", image=self.icon_video_output, compound="left",
+                                          command=self.open_result, height=35, font=ctk.CTkFont(size=12, weight="bold"),
+                                          fg_color=self.COLOR_ACCENT, hover_color=self.COLOR_HOVER, text_color="black")
+        self.btn_open_out.pack(pady=(15, 10), padx=20, fill="x")
 
         # 3. STATUS & PROGRESS AREA (Bottom)
         self.status_frame = ctk.CTkFrame(self.container_frame, height=200, fg_color=self.COLOR_SIDEBAR, corner_radius=15)
@@ -633,75 +631,7 @@ class ModernDigestApp(ctk.CTk):
         self.about_textbox.configure(state="disabled") # 編集不可に設定
 
         # --- D. SETTINGS PAGE ---
-        self.settings_frame = ctk.CTkFrame(self.container_frame, fg_color=self.COLOR_DEEP_BG)
-        self.settings_frame.grid_columnconfigure(0, weight=1)
-        # self.settings_frame.grid_rowconfigure(0, weight=1)
 
-        ctk.CTkLabel(self.settings_frame, text="管理設定", text_color=self.COLOR_ACCENT, font=ctk.CTkFont(size=24, weight="bold")).grid(row=0, column=0, pady=(20, 10))
-
-        # 2. 管理設定 (Hugging Face / API)
-        self.admin_section = ctk.CTkFrame(self.settings_frame, fg_color=self.COLOR_SIDEBAR, corner_radius=15)
-        self.admin_section.grid(row=1, column=0, sticky="ew", padx=40, pady=20)
-        ctk.CTkLabel(self.admin_section, text="🛠️ モデル設定 (AI BGM用)", text_color=self.COLOR_ACCENT, font=ctk.CTkFont(size=14, weight="bold")).pack(pady=10)
-        
-        hf_cnt = ctk.CTkFrame(self.admin_section, fg_color="transparent")
-        hf_cnt.pack(pady=5)
-        ctk.CTkLabel(hf_cnt, text="Hugging Face Token:", font=ctk.CTkFont(size=11)).pack(side="left")
-        self.entry_hf = ctk.CTkEntry(hf_cnt, textvariable=self.hf_token, width=220, 
-                                     fg_color=self.COLOR_DEEP_BG, border_color=self.COLOR_ACCENT,
-                                     placeholder_text="hf_...", show="*")
-        self.entry_hf.pack(side="left", padx=10)
-        
-        self.btn_save_token = ctk.CTkButton(hf_cnt, text="保存", width=60, height=28, 
-                                            fg_color=self.COLOR_ACCENT, hover_color=self.COLOR_HOVER, text_color="black",
-                                            font=ctk.CTkFont(size=11, weight="bold"),
-                                            command=lambda: self.save_config(notify=True))
-        self.btn_save_token.pack(side="left", padx=5)
-
-        self.btn_get_token = ctk.CTkButton(hf_cnt, text="トークン取得", width=80, fg_color="transparent", 
-                                           border_width=1, text_color=("gray10", "gray90"),
-                                           command=lambda: webbrowser.open("https://huggingface.co/settings/tokens"))
-        self.btn_get_token.pack(side="right", padx=(0, 10))
-
-        ctk.CTkLabel(self.admin_section, text="【Hugging Face Token の入手手順】", 
-                     font=ctk.CTkFont(size=11, weight="bold"), text_color=self.COLOR_ACCENT).pack(pady=(10, 5))
-        
-        # Instructions Container (Centered block, content left-aligned)
-        instr_cnt = ctk.CTkFrame(self.admin_section, fg_color="transparent")
-        instr_cnt.pack(pady=(0, 10))
-
-        # Step 1
-        s1_row = ctk.CTkFrame(instr_cnt, fg_color="transparent")
-        s1_row.pack(anchor="w", pady=2)
-        ctk.CTkLabel(s1_row, text="1. アカウント作成 (無料): ", font=ctk.CTkFont(size=10), text_color="gray80").pack(side="left")
-        btn_hf_reg = ctk.CTkButton(s1_row, text="huggingface.co", width=80, height=18, font=ctk.CTkFont(size=9),
-                                   fg_color="transparent", border_width=1, border_color="gray50",
-                                   command=lambda: webbrowser.open("https://huggingface.co/join"))
-        btn_hf_reg.pack(side="left", padx=5)
-
-        # Step 2
-        s2_row = ctk.CTkFrame(instr_cnt, fg_color="transparent")
-        s2_row.pack(anchor="w", pady=2)
-        ctk.CTkLabel(s2_row, text="2. 利用規約への同意: ", font=ctk.CTkFont(size=10), text_color="gray80").pack(side="left")
-        btn_hf_model = ctk.CTkButton(s2_row, text="モデルページを開く", width=100, height=18, font=ctk.CTkFont(size=9),
-                                     fg_color="transparent", border_width=1, border_color="gray50",
-                                     command=lambda: webbrowser.open("https://huggingface.co/stabilityai/stable-audio-open-1.0"))
-        btn_hf_model.pack(side="left", padx=5)
-        
-        ctk.CTkLabel(instr_cnt, text="   └ 「Agree and access repository」ボタンをクリック", 
-                     font=ctk.CTkFont(size=10), text_color="gray60", anchor="w").pack(anchor="w")
-
-        # Step 3
-        s3_row = ctk.CTkFrame(instr_cnt, fg_color="transparent")
-        s3_row.pack(anchor="w", pady=2)
-        ctk.CTkLabel(s3_row, text="3. トークンの作成: ", font=ctk.CTkFont(size=10), text_color="gray80").pack(side="left")
-        btn_hf_token = ctk.CTkButton(s3_row, text="Settings > Access Tokens", width=130, height=18, font=ctk.CTkFont(size=9),
-                                     fg_color="transparent", border_width=1, border_color="gray50",
-                                     command=lambda: webbrowser.open("https://huggingface.co/settings/tokens"))
-        btn_hf_token.pack(side="left", padx=5)
-        
-        ctk.CTkLabel(instr_cnt, text="   └ 「Create new token」から「Type: Read」で作成してコピー", 
-                     font=ctk.CTkFont(size=10), text_color="gray60", anchor="w").pack(anchor="w")
 
         # --- 共通ログ & プログレス (メインの下部に配置) ---
         self.bottom_frame = ctk.CTkFrame(self.container_frame, height=300, fg_color=self.COLOR_DEEP_BG, corner_radius=0)
@@ -723,15 +653,13 @@ class ModernDigestApp(ctk.CTk):
 
     def select_frame_by_name(self, name):
         # ボタンの色リセット
-        self.btn_nav_scan.configure(fg_color=("gray75", "gray25") if name == "scan" else "transparent")
-        self.btn_nav_edit.configure(fg_color=("gray75", "gray25") if name == "edit" else "transparent")
-        self.btn_nav_settings.configure(fg_color=("gray75", "gray25") if name == "settings" else "transparent")
-        self.btn_nav_about.configure(fg_color=("gray75", "gray25") if name == "about" else "transparent")
+        self.btn_nav_scan.configure(fg_color=(self.COLOR_SIDEBAR if name == "scan" else "transparent"))
+        self.btn_nav_edit.configure(fg_color=(self.COLOR_SIDEBAR if name == "edit" else "transparent"))
+        self.btn_nav_about.configure(fg_color=(self.COLOR_SIDEBAR if name == "about" else "transparent"))
 
         # ページ切り替え
         self.scan_frame.grid_forget()
         self.edit_frame.grid_forget()
-        self.settings_frame.grid_forget()
         self.about_frame.grid_forget()
 
         if name == "scan":
@@ -740,8 +668,6 @@ class ModernDigestApp(ctk.CTk):
             self.edit_frame.grid(row=0, column=0, sticky="nsew")
             self.update_target_menu()
             self.update_period_menu()
-        elif name == "settings":
-            self.settings_frame.grid(row=0, column=0, sticky="nsew")
         elif name == "about":
             self.about_frame.grid(row=0, column=0, sticky="nsew")
 
@@ -1202,13 +1128,22 @@ class ModernDigestApp(ctk.CTk):
                 
                 try:
                     self.log("--- ステップ 1/2: ストーリーを構成中 ---")
+                    
+                    # Get selected BGM path (added debug log)
+                    manual_bgm = self.selected_bgm.get()
+                    self.log(f"DEBUG: app.py selected_bgm = '{manual_bgm}'")
+                    if manual_bgm and not os.path.exists(manual_bgm):
+                        self.log(f"[WARNING] Selected BGM not found: {manual_bgm}")
+                        manual_bgm = ""
+
                     create_story.create_story(
                         person_name, 
                         period=self.selected_period.get(), 
                         focus=self.selected_focus.get(), 
                         bgm_enabled=self.bgm_enabled.get(),
                         json_path=self.SCAN_RESULTS,
-                        output_playlist_path=self.STORY_PLAYLIST
+                        output_playlist_path=self.STORY_PLAYLIST,
+                        manual_bgm_path=manual_bgm
                     )
                     
                     self.log("\n--- ステップ 2/2: 動画をレンダリング中 ---")
@@ -1266,103 +1201,82 @@ class ModernDigestApp(ctk.CTk):
         except Exception as e:
             self.log(f"[ERROR] Failed to reveal folder: {e}")
 
-    def generate_single_bgm(self, vibe):
-        if self.is_running:
-            self.log("[WARNING] Another process is running. Please wait.")
-            return
+    def open_bgm_folder(self):
+        """BGM格納フォルダを開く"""
+        try:
+            bgm_dir = os.path.join(get_app_dir(), "bgm")
+            os.makedirs(bgm_dir, exist_ok=True)
+            if sys.platform == "darwin":
+                subprocess.call(["open", bgm_dir])
+            elif sys.platform == "win32":
+                os.startfile(bgm_dir)
+            else:
+                subprocess.call(["xdg-open", bgm_dir])
+        except Exception as e:
+            self.log(f"Error opening BGM folder: {e}")
 
-        # Check HF Token
-        if not self.hf_token.get().strip():
-            self.log("__NOTIFY__", title="警告", 
-                     message="BGM生成にはHugging Faceトークンが必要です。\n設定ページでトークンを入力してください。", type="warning")
-            self.select_frame_by_name("about")
-            return
-            
-        self.log(f"\n>>> Starting Pre-Generation for {vibe} BGM...")
-        self.log("    (This will take 2-5 minutes. Please check the log.)")
-        self.is_running = True
-        
-        # Disable buttons
-        self.btn_gen_digest.configure(state="disabled")
-        self.btn_gen_story.configure(state="disabled")
-        
-        def run():
-            try:
-                # Direct call instead of subprocess
-                current_stdout = sys.stdout
-                current_stderr = sys.stderr
-                sys.stdout = RedirectText(lambda s: self.log(s, end=""))
-                sys.stderr = RedirectText(lambda s: self.log(s, end=""))
-                
-                try:
-                    # Ensure absolute output dir exists
-                    os.makedirs(self.OUTPUT_DIR, exist_ok=True)
-                    bgm_output_dir = os.path.join(self.OUTPUT_DIR, "bgm")
-                    
-                    # Pass token and absolute output_dir to generate_bgm
-                    success, _ = generate_bgm.generate_bgm(
-                        vibe=vibe, 
-                        duration_seconds=47, 
-                        output_dir=bgm_output_dir,
-                        token=self.hf_token.get().strip()
-                    )
-                    if not success:
-                        raise Exception(f"BGM生成に失敗しました ({vibe})。\nトークンと権限を確認してください。")
-                finally:
-                    sys.stdout = current_stdout
-                    sys.stderr = current_stderr
-                
-                self.log(f"\n>>> {vibe} BGM GENERATED SUCCESSFULLY!")
-                self.log("__NOTIFY__", title="完了", message=f"{vibe} のBGM生成が完了しました！")
-                self.after(0, self.refresh_bgm_list)
-            except Exception as e:
-                self.log(f"ERROR: {e}")
-                self.log("__NOTIFY__", title="エラー", message=str(e), type="error")
-            finally:
-                self.after(0, self.reset_edit_ui)
-
-        threading.Thread(target=run).start()
+    # generate_single_bgm was removed as AI generation is deprecated.
+    # This method is kept as a placeholder if triggered by old buttons, 
+    # but buttons should be updated to call open_bgm_folder or removed.
 
     def refresh_bgm_list(self):
-        # Clear existing
-        for widget in self.bgm_list_frame.winfo_children():
-            widget.destroy()
-            
-        bgm_dir = os.path.join(self.OUTPUT_DIR, "bgm")
-        if not os.path.exists(bgm_dir):
-            return
-            
+        """bgm/ ディレクトリのファイルをリストアップ"""
         try:
-            files = sorted([f for f in os.listdir(bgm_dir) if f.endswith(".wav")], reverse=True)
+            for widget in self.bgm_list_frame.winfo_children():
+                widget.destroy()
             
+            # Look in root bgm/ directory
+            bgm_dir = os.path.join(get_app_dir(), "bgm")
+            if not os.path.exists(bgm_dir):
+                return
+                
+            files = []
+            for ext in ["*.wav", "*.mp3", "*.m4a"]:
+                files.extend(glob.glob(os.path.join(bgm_dir, ext)))
+                
+            files.sort(key=os.path.getmtime, reverse=True)
+            
+            if not files:
+                ctk.CTkLabel(self.bgm_list_frame, text="ファイルがありません", text_color="gray").pack(pady=5)
+                return
+
             for f in files:
-                f_path = os.path.join(bgm_dir, f)
-                f_frame = ctk.CTkFrame(self.bgm_list_frame, fg_color="transparent")
-                f_frame.pack(fill="x", pady=2)
+                name = os.path.basename(f)
                 
-                # Label for filename (truncated if needed)
-                display_name = f
-                if len(display_name) > 25:
-                    display_name = display_name[:22] + "..."
-                ctk.CTkLabel(f_frame, text=display_name, font=ctk.CTkFont(size=10), text_color=self.COLOR_TEXT).pack(side="left", padx=5)
+                row = ctk.CTkFrame(self.bgm_list_frame, fg_color="transparent")
+                row.pack(fill="x", pady=2)
                 
-                # Delete button (rightmost)
-                btn_del = ctk.CTkButton(f_frame, text="×", width=24, height=24, fg_color="#5D6D7E", hover_color="#A93226",
+                # Delete button (rightmost) - Pack FIRST to ensure it stays on the right
+                btn_del = ctk.CTkButton(row, text="×", width=24, height=24, fg_color="#5D6D7E", hover_color="#A93226",
                                          text_color="white", font=ctk.CTkFont(size=14, weight="bold"),
                                          anchor="center",
-                                         command=lambda name=f: self.delete_single_bgm(name))
+                                         command=lambda name=name: self.delete_single_bgm(name))
                 btn_del.pack(side="right", padx=5)
 
-                # Play/Stop button
+                # Radio button for selection
+                # Use the full path as value
+                rb = ctk.CTkRadioButton(row, text="", variable=self.selected_bgm, value=f, width=24)
+                rb.pack(side="left", padx=(5, 0))
+                
+                # Play button
+                f_path = f # Use the full path loop variable
                 is_playing = (self.playing_bgm == f_path)
-                btn_play = ctk.CTkButton(f_frame, text="■" if is_playing else "▶", 
+                btn_play = ctk.CTkButton(row, text="■" if is_playing else "▶", 
                                           width=24, height=24, 
                                           fg_color=self.COLOR_ACCENT if not is_playing else "#780001", 
                                           hover_color=self.COLOR_HOVER,
                                           text_color="black" if not is_playing else "white", 
                                           font=ctk.CTkFont(size=11, weight="bold"),
                                           command=lambda path=f_path: self.toggle_bgm_playback(path))
-                btn_play.pack(side="right", padx=5)
+                btn_play.pack(side="left", padx=5)
+                
+                # Label (Truncate if too long)
+                display_name = name
+                if len(display_name) > 25:
+                    display_name = display_name[:25] + "..."
+                    
+                lbl = ctk.CTkLabel(row, text=display_name, anchor="w", font=ctk.CTkFont(size=11))
+                lbl.pack(side="left", padx=5, fill="x", expand=True)
 
         except Exception as e:
             self.log(f"[ERROR] Failed to refresh BGM list: {e}")
@@ -1402,11 +1316,14 @@ class ModernDigestApp(ctk.CTk):
     def delete_single_bgm(self, filename):
         if messagebox.askyesno("確認", f"BGM '{filename}' を削除しますか？"):
             try:
-                path = os.path.join(self.OUTPUT_DIR, "bgm", filename)
+                # Use root bgm/ directory
+                path = os.path.join(get_app_dir(), "bgm", filename)
                 if os.path.exists(path):
                     os.remove(path)
-                self.refresh_bgm_list()
-                self.log(f"[INFO] Deleted BGM: {filename}")
+                    self.log(f"[INFO] Deleted BGM: {filename}")
+                    self.refresh_bgm_list()
+                else:
+                    self.log(f"[ERROR] File not found: {path}")
             except Exception as e:
                 self.log(f"[ERROR] Failed to delete BGM: {e}")
 
