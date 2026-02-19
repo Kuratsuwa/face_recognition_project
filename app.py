@@ -117,9 +117,7 @@ class ModernDigestApp(ctk.CTk):
         # Load Config First
         self.config = self.load_config()
         
-        # Override output dir if in config
-        if "video_folder" in self.config and self.config["video_folder"]:
-             self.OUTPUT_DIR = self.config["video_folder"]
+
         
         self.target_image_path = ctk.StringVar(value=self.config.get("target_path", ""))
         self.video_folder_path = ctk.StringVar(value=self.config.get("video_folder", ""))
@@ -1974,6 +1972,8 @@ class ModernDigestApp(ctk.CTk):
         self.destroy()
 
 if __name__ == "__main__":
+    import multiprocessing
+    multiprocessing.freeze_support()
     try:
         app = ModernDigestApp()
         app.mainloop()
